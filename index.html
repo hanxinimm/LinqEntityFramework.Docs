@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Description">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="/assets/dotnet.css">
+</head>
+<body>
+  <nav>
+    <a href="#/">English</a>
+    <a href="#/zh-cn/">简体中文</a>
+  </nav>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      onlyCover: true,
+      loadSidebar: true,
+      subMaxLevel: 2,
+      coverpage: true,
+        // 多个封面页
+      coverpage: ['/', '/zh-cn/'],
+      tabs: {
+        persist    : true,      // default
+        sync       : true,      // default
+        theme      : 'classic', // default
+        tabComments: true,      // default
+        tabHeadings: true       // default
+      },
+      copyCode: {
+        buttonText: {
+          '/zh-cn/': '复制',
+          '/ru/'   : 'Скопировать в буфер обмена',
+          '/de-de/': 'Klicken Sie zum Kopieren',
+          '/es/'   : 'Haga clic para copiar',
+          '/'      : 'Copy to clipboard'
+        },
+        errorText: {
+          '/zh-cn/': '错误',
+          '/ru/'   : 'ошибка',
+          '/'      : 'Error'
+        },
+        successText: {
+          '/zh-cn/': '复制',
+          '/ru/'   : 'Скопировано',
+          '/de-de/': 'Kopiert',
+          '/es/'   : 'Copiado',
+          '/'      : 'Copied'
+        }
+      },
+      share: {
+        reddit: true,
+        linkedin: true,
+        facebook: true,
+        twitter: true,
+        whatsapp: true,
+        telegram: true,       
+      }
+    }
+  </script>
+  <!-- Docsify v4 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <!-- docsify-tabs (latest v1.x.x) -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
+  <!-- Latest v2.x.x -->
+  <script src="//unpkg.com/docsify-copy-code@2"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-csharp.min.js"></script>
+  <!-- Docsify Share -->
+  <script src="//unpkg.com/docsify-share/build/index.min.js"></script>
+  <!-- title -->
+  <script src="//cdn.jsdelivr.net/npm/@sujaykumarh/docsify-plugin-title@1.x/dist/plugin.min.js"></script>
+  <!-- Latest -->
+  <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
+</body>
+</html>
