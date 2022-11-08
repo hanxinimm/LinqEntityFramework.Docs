@@ -1,0 +1,607 @@
+---
+sidebar_position: 5030
+title: 级联删除
+description: Configuring cascading behaviors triggered when an entity is deleted or severed from its principal/parent
+author: ajcvickers
+ms.date: 08/10/2021
+uid: core/saving/cascade-delete
+---
+
+import CascadeDeletesIntroRequiredSamples from '!!raw-loader!../../../../../static/samples/CascadeDeletes/IntroRequiredSamples.cs';
+
+import CascadeDeletesWithDatabaseCycleSamples from '!!raw-loader!../../../../../static/samples/CascadeDeletes/WithDatabaseCycleSamples.cs';
+
+import CascadeDeletesOptionalDependentsSamples from '!!raw-loader!../../../../../static/samples/CascadeDeletes/OptionalDependentsSamples.cs';
+
+import CascadeDeletesIntroOptionalSamples from '!!raw-loader!../../../../../static/samples/CascadeDeletes/IntroOptionalSamples.cs';
+
+
+
+# 级联删除
+
+Entity Framework Core (EF Core) 表示使用外键的关系。 具有外键的实体是关系中的子实体或依赖实体。 此实体的外键值必须与相关主体/父实体的主键值（或替换键值）匹配。
+
+如果删除主体/父实体，则依赖项/子项的外键值将不再匹配任何主体/父实体的主键或替换键。 这是无效状态，将导致在大多数数据库中出现引用约束冲突。
+
+可通过两种方法来避免此引用约束冲突：
+
+1. 将外键值设置为 null
+2. 同时删除依赖实体/子实体
+
+第一个选项仅适用于其中外键属性（及其映射到的数据库列）必须可为 null 的可选关系。
+
+第二个选项适用于任何类型的关系，它被称作“级联删除”。
+
+> [!TIP]
+本文档从更新数据库的角度介绍级联删除（和删除孤立项）。 本文大量使用在在 EF Core 中更改跟踪和更改外键和导航文章中介绍的概念。 请确保在此处处理材料之前充分了解这些概念。
+
+通过从 [GitHub 下载示例代码](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/CascadeDeletes)，你可运行并调试到本文档中的所有代码。
+
+> 
+
+## 发生级联行为时
+
+当依赖实体/子实体无法再与其当前主体/父实体关联时，需要执行级联删除。 发生这种情况的原因可能是主体/父实体已被删除，或者当主体/父实体仍存在，但依赖实体/子实体不再与其关联时。
+
+### 删除主体/父实体
+
+请考虑此简单模型，其中 `Blog` 是与 `Post`（依赖实体/子实体）的关系中的主体/父实体。 `Post.BlogId` 是一个外键属性，其值必须与该文章所属博客中的 `Blog.Id` 主键匹配。
+
+
+<!--
+    public class Blog
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+
+        public IList<Post> Posts { get; } = new List<Post>();
+    }
+
+    public class Post
+    {
+        public int Id { get; set; }
+
+        public string Title { get; set; }
+        public string Content { get; set; }
+
+        public int BlogId { get; set; }
+        public Blog Blog { get; set; }
+    }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Model" showLineNumbers>{CascadeDeletesIntroRequiredSamples}</CodeSnippets>
+
+按照约定，由于 Post.BlogId 外键属性是不可为 null 的，因此该关系被配置为必需的。 默认情况下，所需的关系配置为使用级联删除。 要详细了解建模关系，请参阅 [关系](zh-cn/docs/modeling/relationships)。
+
+删除博客时，所有文章都将被级联删除。 例如：
+
+<!--
+            using var context = new BlogsContext();
+
+            var blog = context.Blogs.OrderBy(e => e.Name).Include(e => e.Posts).First();
+
+            context.Remove(blog);
+            
+            context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Deleting_principal_parent_1" showLineNumbers>{CascadeDeletesIntroRequiredSamples}</CodeSnippets>
+
+SaveChanges 以 SQL Server 为例，生成以下 SQL：
+
+```sql title=SQL
+-- Executed DbCommand (1ms) [Parameters=[@p0='1'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [Posts]
+WHERE [Id] = @p0;
+SELECT @@ROWCOUNT;
+
+-- Executed DbCommand (0ms) [Parameters=[@p0='2'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [Posts]
+WHERE [Id] = @p0;
+SELECT @@ROWCOUNT;
+
+-- Executed DbCommand (2ms) [Parameters=[@p1='1'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [Blogs]
+WHERE [Id] = @p1;
+SELECT @@ROWCOUNT;
+```
+
+### 断开关系
+
+我们不会删除博客，而是断开每篇文章与其博客之间的关系。 为此，可将每篇文章的引用导航 `Post.Blog` 设置为 `null`：
+
+
+<!--
+            using var context = new BlogsContext();
+
+            var blog = context.Blogs.OrderBy(e => e.Name).Include(e => e.Posts).First();
+
+            foreach (var post in blog.Posts)
+            {
+                post.Blog = null;
+            }
+            
+            context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Severing_a_relationship_1" showLineNumbers>{CascadeDeletesIntroRequiredSamples}</CodeSnippets>
+
+还可通过从 `Blog.Posts` 集合导航中删除每篇文章内容来断开关系：
+
+<!--
+            using var context = new BlogsContext();
+
+            var blog = context.Blogs.OrderBy(e => e.Name).Include(e => e.Posts).First();
+
+            blog.Posts.Clear();
+            
+            context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Severing_a_relationship_2" showLineNumbers>{CascadeDeletesIntroRequiredSamples}</CodeSnippets>
+
+无论哪种情况，结果都一样：没有删除博客，但是删除了不再与任何博客关联的文章：
+
+```sql title=SQL
+-- Executed DbCommand (1ms) [Parameters=[@p0='1'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [Posts]
+WHERE [Id] = @p0;
+SELECT @@ROWCOUNT;
+
+-- Executed DbCommand (0ms) [Parameters=[@p0='2'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [Posts]
+WHERE [Id] = @p0;
+SELECT @@ROWCOUNT;
+```
+
+删除不再与任何主体/依赖实体关联的实体这一行为被称作“删除孤立项”。
+
+> [!TIP]
+级联删除和删除孤立项是密切相关的。 当断开与所需的主体/父实体之间的关系时，两者都将导致删除依赖实体/子实体。 对于级联删除，由于主体/父实体本身已删除，因此发生了这种断开。 对于孤立项，主体/父实体仍然存在，但不再与依赖实体/子实体相关。
+> 
+
+## 发生级联行为的位置
+
+可将级联行为应用于：
+
+- 当前 [DbContext](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.dbcontext) 跟踪的实体
+- 数据库中尚未加载到上下文中的实体
+
+### 级联删除被跟踪实体
+
+EF Core 始终将配置的级联行为应用于跟踪的实体。 这意味着如上面的示例所示，如果应用程序将所有相关的依赖实体/子实体加载到 DbContext 中，则无论如何配置数据库，都将正确应用级联行为。
+
+> [!TIP]
+可使用 [ChangeTracker.CascadeDeleteTiming](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.changetracking.changetracker.cascadedeletetiming#microsoft-entityframeworkcore-changetracking-changetracker-cascadedeletetiming) 和 [ChangeTracker.DeleteOrphansTiming](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.changetracking.changetracker.deleteorphanstiming#microsoft-entityframeworkcore-changetracking-changetracker-deleteorphanstiming) 控制在被跟踪实体上发生级联行为的确切时间。 有关详细信息，请参阅更改外键和导航。
+> 
+
+### 数据库中的级联删除
+
+许多数据库系统还提供在数据库中删除实体时触发的级联行为。 使用 EnsureCreated 或 LEF 迁移创建数据库时，LEF 会根据 LEF 模型中的级联删除行为来配置这些行为。 例如，通过上述模型，使用 SQL Server 时将为文章创建下表：
+
+```sql title=SQL
+CREATE TABLE [Posts] (
+    [Id] int NOT NULL IDENTITY,
+    [Title] nvarchar(max) NULL,
+    [Content] nvarchar(max) NULL,
+    [BlogId] int NOT NULL,
+    CONSTRAINT [PK_Posts] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Posts_Blogs_BlogId] FOREIGN KEY ([BlogId]) REFERENCES [Blogs] ([Id]) ON DELETE CASCADE
+);
+```
+
+请注意，定义博客和文章之间关系的外键约束是用 `ON DELETE CASCADE` 配置的。
+
+如果我们知道数据库是这样配置的，那么我们可以删除博客，而无需先加载文章，数据库将负责删除与此博客相关的所有文章。 例如：
+
+<!--
+            using var context = new BlogsContext();
+
+            var blog = context.Blogs.OrderBy(e => e.Name).First();
+
+            context.Remove(blog);
+            
+            context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Where_cascading_behaviors_happen_1" showLineNumbers>{CascadeDeletesIntroRequiredSamples}</CodeSnippets>
+
+请注意，文章没有 `Include`，因此它们不会被加载。 在这种情况下，`SaveChanges` 将仅删除博客，因为这是唯一正在跟踪的实体：
+
+```sql title=SQL
+-- Executed DbCommand (6ms) [Parameters=[@p0='1'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [Blogs]
+WHERE [Id] = @p0;
+SELECT @@ROWCOUNT;
+```
+
+如果未针对级联删除配置数据库中的外键约束，则将导致异常。 但在这种情况下，数据库删除了文章，因为它在创建时是用 `ON DELETE CASCADE` 配置的。
+
+> [!NOTE]
+数据库通常没有任何自动删除孤立项的方法。 这是因为虽然 LEF 使用导航以及外键来表示关系，但是数据库仅具有外键而没有导航。 这意味着通常无法在不将双方都加载到 `DbContext` 的情况下断开关系。
+> 
+
+> [!NOTE]
+EF Core 内存中数据库当前不支持数据库中的级联删除。
+> 
+
+> [!WARNING]
+//TODO:开启软删除默认也支持关联
+软删除实体时，请勿在数据库中配置级联删除。 这可能会导致实体被意外删除，而不是软删除。
+> 
+
+### 数据库级联限制
+
+一些数据库（最突出的是 SQL Server）对形成周期的级联行为有限制。 例如，请考虑以下模型：
+
+<!--
+    public class Blog
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+
+        public IList<Post> Posts { get; } = new List<Post>();
+        
+        public int OwnerId { get; set; }
+        public Person Owner { get; set; }
+    }
+
+    public class Post
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+
+        public int BlogId { get; set; }
+        public Blog Blog { get; set; }
+        
+        public int AuthorId { get; set; }
+        public Person Author { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        
+        public IList<Post> Posts { get; } = new List<Post>();
+
+        public Blog OwnedBlog { get; set; }
+    }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Model" showLineNumbers>{CascadeDeletesWithDatabaseCycleSamples}</CodeSnippets>
+
+该模型具有 3 个关系，所有这些关系都是必需的，因此按约定配置为级联删除：
+
+- 删除博客将级联删除所有相关文章
+- 删除文章的作者将导致作者的文章被级联删除
+- 删除博客所有者将导致该博客被级联删除
+
+这一切都是合理的（不过在博客管理策略中有些苛刻！），但是尝试创建配置了这些级联的 SQL Server 数据库会导致以下异常：
+
+> Microsoft.Data.SqlClient.SqlException (0x80131904):将 FOREIGN KEY 约束 "FK_Posts_Person_AuthorId" 引入表 "Posts" 可能会导致循环或多重级联路径。 请指定 ON DELETE NO ACTION 或 ON UPDATE NO ACTION，或修改其他 FOREIGN KEY 约束。
+
+有两种方法可处理这种情况：
+
+1. 将一个或多个关系更改为不级联删除。
+2. 配置数据库，但不包含这些级联删除中的一个或多个，然后确保已加载所有依赖实体，以便 EF Core 可执行级联行为。
+
+在我们的示例中采用第一种方法，我们可通过为博客与所有者之间的关系赋予可为 null 的外键属性来使其成为可选关系：
+
+
+<!--
+            public int? BlogId { get; set; }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="NullableBlogId" showLineNumbers>{CascadeDeletesOptionalDependentsSamples}</CodeSnippets>
+
+
+可选关系使得即使没有所有者，博客也可存在，这意味着默认情况下将不再配置级联删除。 这表示级联操作不再循环，并且可以在 SQL Server 上创建数据库而不会出现错误。
+
+采取第二种方法，我们可以保持必需的博客所有者关系并对其配置来进行级联删除，但是使此配置仅适用于跟踪的实体，而不适用于数据库：
+
+<!--
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<Blog>()
+                .HasOne(e => e.Owner)
+                .WithOne(e => e.OwnedBlog)
+                .OnDelete(DeleteBehavior.ClientCascade);
+        }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="OnModelCreating" showLineNumbers>{CascadeDeletesWithDatabaseCycleSamples}</CodeSnippets>
+
+现在，如果我们同时加载某用户及其拥有的博客，然后删除该用户，会发生什么呢？
+
+<!--
+            using var context = new BlogsContext();
+
+            var owner = context.People.Single(e => e.Name == "ajcvickers");
+            var blog = context.Blogs.Single(e => e.Owner == owner);
+
+            context.Remove(owner);
+            
+            context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Database_cascade_limitations_1" showLineNumbers>{CascadeDeletesWithDatabaseCycleSamples}</CodeSnippets>
+
+EF Core 将级联删除所有者，以便博客也被删除：
+
+```sql title=SQL
+-- Executed DbCommand (8ms) [Parameters=[@p0='1'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [Blogs]
+WHERE [Id] = @p0;
+SELECT @@ROWCOUNT;
+
+-- Executed DbCommand (2ms) [Parameters=[@p1='1'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [People]
+WHERE [Id] = @p1;
+SELECT @@ROWCOUNT;
+```
+
+但是，如果在删除所有者时未加载博客：
+
+<!--
+                using var context = new BlogsContext();
+
+                var owner = context.People.Single(e => e.Name == "ajcvickers");
+
+                context.Remove(owner);
+            
+                context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Database_cascade_limitations_2" showLineNumbers>{CascadeDeletesWithDatabaseCycleSamples}</CodeSnippets>
+
+则由于违反数据库中的外键约束，将引发异常：
+
+> Microsoft.Data.SqlClient.SqlException:DELETE 语句与REFERENCE 约束 "FK_Blogs_People_OwnerId" 发生冲突。 数据库 "Scratch"、表 "dbo.Blogs"、列 "OwnerId" 中发生冲突。 语句已终止。
+
+## 级联 NULL
+
+可选关系将可为 null 的外键属性映射到可为 null 的数据库列。 这意味着当删除当前主体/父实体或断开与依赖实体/子实体的关系时，可将外键值设置为 NULL。
+
+让我们再看一下[发生级联行为时](#when-cascading-behaviors-happen)的示例，但这次可选关系由可为 null 的 Post.BlogId 外键属性表示：
+
+<!--
+            public int? BlogId { get; set; }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="NullableBlogId" showLineNumbers>{CascadeDeletesOptionalDependentsSamples}</CodeSnippets>
+
+删除每篇文章的相关博客时，该文章的外键属性将设置为 NULL。 例如，此代码与之前的代码相同：
+
+<!--
+            using var context = new BlogsContext();
+
+            var blog = context.Blogs.OrderBy(e => e.Name).Include(e => e.Posts).First();
+
+            context.Remove(blog);
+            
+            context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Deleting_principal_parent_1b" showLineNumbers>{CascadeDeletesIntroOptionalSamples}</CodeSnippets>
+
+现将在调用 SaveChanges 时导致以下数据库更新：
+
+```sql title=SQL
+-- Executed DbCommand (2ms) [Parameters=[@p1='1', @p0=NULL (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [Posts] SET [BlogId] = @p0
+WHERE [Id] = @p1;
+SELECT @@ROWCOUNT;
+
+-- Executed DbCommand (0ms) [Parameters=[@p1='2', @p0=NULL (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [Posts] SET [BlogId] = @p0
+WHERE [Id] = @p1;
+SELECT @@ROWCOUNT;
+
+-- Executed DbCommand (1ms) [Parameters=[@p2='1'], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [Blogs]
+WHERE [Id] = @p2;
+SELECT @@ROWCOUNT;
+```
+
+同样，如果使用上述任一示例来断开关系：
+
+<!--
+            using var context = new BlogsContext();
+
+            var blog = context.Blogs.OrderBy(e => e.Name).Include(e => e.Posts).First();
+
+            foreach (var post in blog.Posts)
+            {
+                post.Blog = null;
+            }
+            
+            context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Severing_a_relationship_1b" showLineNumbers>{CascadeDeletesIntroOptionalSamples}</CodeSnippets>
+
+或：
+
+<!--
+            using var context = new BlogsContext();
+
+            var blog = context.Blogs.OrderBy(e => e.Name).Include(e => e.Posts).First();
+
+            blog.Posts.Clear();
+            
+            context.SaveChanges();
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="Severing_a_relationship_2b" showLineNumbers>{CascadeDeletesIntroOptionalSamples}</CodeSnippets>
+
+则在调用 SaveChanges 时，将使用 NULL 外键值更新文章：
+
+
+```sql title=SQL
+-- Executed DbCommand (2ms) [Parameters=[@p1='1', @p0=NULL (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [Posts] SET [BlogId] = @p0
+WHERE [Id] = @p1;
+SELECT @@ROWCOUNT;
+
+-- Executed DbCommand (0ms) [Parameters=[@p1='2', @p0=NULL (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [Posts] SET [BlogId] = @p0
+WHERE [Id] = @p1;
+SELECT @@ROWCOUNT;
+```
+
+请参阅[更改外键和导航](zh-cn/docs/change-tracking/relationship-changes)，详细了解 EF Core 如何在外键和导航的值更改时管理外键和导航。
+
+
+> [!NOTE]
+自 2008 年首版以来，实体框架默认情况下都会修复这类关系。 在 LEF 之前，它没有名称，且无法更改。 它现在称为 ClientSetNull，如下一部分所述。
+> 
+
+当删除可选关系中的主体/父实体时，数据库也可配置为级联 NULL。 但是，与在数据库中使用级联删除相比，这种情况要少得多。 在使用 SQL Server 时，在数据库中同时使用级联删除和级联 NULL 几乎总是会导致关系循环。 若要详细了解如何配置级联 NULL，请参阅下一部分。
+
+## 配置级联行为
+
+> [!TIP]
+请务必阅读上述部分，然后再转到此处。 如果不了解上述资料，那么配置选项可能没有意义。
+> 
+
+使用 [OnModelCreating](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.dbcontext.onmodelcreating) 中的 [OnDelete](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.metadata.builders.referencecollectionbuilder.ondelete) 方法按关系配置级联行为。 例如：
+
+
+<!--
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<Blog>()
+                .HasOne(e => e.Owner)
+                .WithOne(e => e.OwnedBlog)
+                .OnDelete(DeleteBehavior.ClientCascade);
+        }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="OnModelCreating" showLineNumbers>{CascadeDeletesWithDatabaseCycleSamples}</CodeSnippets>
+
+若要详细了解如何配置实体类型之间的关系，请参阅[关系](zh-cn/docs/modeling/relationships)。
+
+`OnDelete` 从公认地令人混淆的 [DeleteBehavior](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.deletebehavior) 枚举中接受一个值。 该枚举既定义了 LEF 在跟踪实体上的行为，又定义了使用 EF 创建架构时数据库中级联删除的配置。
+
+### Impact on database schema
+
+The following table shows the result of each `OnDelete` value on the foreign key constraint created by EF Core migrations or <xref:Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated%2A>.
+
+| DeleteBehavior        | Impact on database schema
+|:----------------------|--------------------------
+| Cascade               | ON DELETE CASCADE
+| Restrict              | ON DELETE RESTRICT
+| NoAction              | database default
+| SetNull               | ON DELETE SET NULL
+| ClientSetNull         | database default
+| ClientCascade         | database default
+| ClientNoAction        | database default
+
+The behaviors of `ON DELETE NO ACTION` (the database default) and `ON DELETE RESTRICT` in relational databases are typically either identical or very similar. Despite what `NO ACTION` may imply, both of these options cause referential constraints to be enforced. The difference, when there is one, is _when_ the database checks the constraints.  Check your database documentation for the specific differences between `ON DELETE NO ACTION` and `ON DELETE RESTRICT` on your database system.
+
+SQL Server doesn't support `ON DELETE RESTRICT`, so `ON DELETE NO ACTION` is used instead.
+
+The only values that will cause cascading behaviors on the database are `Cascade` and `SetNull`. All other values will configure the database to not cascade any changes.
+
+### Impact on SaveChanges behavior
+
+The tables in the following sections cover what happens to dependent/child entities when the principal/parent is deleted, or its relationship to the dependent/child entities is severed. Each table covers one of:
+
+- Optional (nullable FK) and required (non-nullable FK) relationships
+- When dependents/children are loaded and tracked by the DbContext and when they exist only in the database
+
+#### Required relationship with dependents/children loaded
+
+| DeleteBehavior    | On deleting principal/parent             | On severing from principal/parent
+|:------------------|------------------------------------------|----------------------------------------
+| Cascade           | Dependents deleted by EF Core            | Dependents deleted by EF Core
+| Restrict          | `InvalidOperationException`              | `InvalidOperationException`
+| NoAction          | `InvalidOperationException`              | `InvalidOperationException`
+| SetNull           | `SqlException` on creating database      | `SqlException` on creating database
+| ClientSetNull     | `InvalidOperationException`              | `InvalidOperationException`
+| ClientCascade     | Dependents deleted by EF Core            | Dependents deleted by EF Core
+| ClientNoAction    | `DbUpdateException`                      | `InvalidOperationException`
+
+Notes:
+
+- The default for required relationships like this is `Cascade`.
+- Using anything other than cascade delete for required relationships will result in an exception when SaveChanges is called.
+  - Typically, this is an `InvalidOperationException` from EF Core since the invalid state is detected in the loaded children/dependents.
+  - `ClientNoAction` forces EF Core to not check fixup dependents before sending them to the database, so in this case the database throws an exception, which is then wrapped in a `DbUpdateException` by SaveChanges.
+  - `SetNull` is rejected when creating the database since the foreign key column is not nullable.
+- Since dependents/children are loaded, they are always deleted by EF Core, and never left for the database to delete.
+
+#### Required relationship with dependents/children not loaded
+
+| DeleteBehavior    | On deleting principal/parent             | On severing from principal/parent
+|:------------------|------------------------------------------|----------------------------------------
+| Cascade           | Dependents deleted by database           | N/A
+| Restrict          | `DbUpdateException`                      | N/A
+| NoAction          | `DbUpdateException`                      | N/A
+| SetNull           | `SqlException` on creating database      | N/A
+| ClientSetNull     | `DbUpdateException`                      | N/A
+| ClientCascade     | `DbUpdateException`                      | N/A
+| ClientNoAction    | `DbUpdateException`                      | N/A
+
+Notes:
+
+- Severing a relationship is not valid here since the dependents/children are not loaded.
+- The default for required relationships like this is `Cascade`.
+- Using anything other than cascade delete for required relationships will result in an exception when SaveChanges is called.
+  - Typically, this is a `DbUpdateException` because the dependents/children are not loaded, and hence the invalid state can only be detected by the database. SaveChanges then wraps the database exception in a `DbUpdateException`.
+  - `SetNull` is rejected when creating the database since the foreign key column is not nullable.
+
+#### Optional relationship with dependents/children loaded
+
+| DeleteBehavior    | On deleting principal/parent             | On severing from principal/parent
+|:------------------|------------------------------------------|----------------------------------------
+| Cascade           | Dependents deleted by EF Core            | Dependents deleted by EF Core
+| Restrict          | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
+| NoAction          | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
+| SetNull           | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
+| ClientSetNull     | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
+| ClientCascade     | Dependents deleted by EF Core            | Dependents deleted by EF Core
+| ClientNoAction    | `DbUpdateException`                      | Dependent FKs set to null by EF Core
+
+Notes:
+
+- The default for optional relationships like this is `ClientSetNull`.
+- Dependents/children are never deleted unless `Cascade` or `ClientCascade` are configured.
+- All other values cause the dependent FKs to be set to null by EF Core...
+  - ...except `ClientNoAction` which tells EF Core not to touch the foreign keys of dependents/children when the principal/parent is deleted. The database therefore throws an exception, which is wrapped as a `DbUpdateException` by SaveChanges.
+
+#### Optional relationship with dependents/children not loaded
+
+| DeleteBehavior    | On deleting principal/parent             | On severing from principal/parent
+|:------------------|------------------------------------------|----------------------------------------
+| Cascade           | Dependents deleted by database           | N/A
+| Restrict          | `DbUpdateException`                      | N/A
+| NoAction          | `DbUpdateException`                      | N/A
+| SetNull           | Dependent FKs set to null by database    | N/A
+| ClientSetNull     | `DbUpdateException`                      | N/A
+| ClientCascade     | `DbUpdateException`                      | N/A
+| ClientNoAction    | `DbUpdateException`                      | N/A
+
+Notes:
+
+- Severing a relationship is not valid here since the dependents/children are not loaded.
+- The default for optional relationships like this is `ClientSetNull`.
+- Dependents/children must be loaded to avoid a database exception unless the database has been configured to cascade either deletes or nulls.

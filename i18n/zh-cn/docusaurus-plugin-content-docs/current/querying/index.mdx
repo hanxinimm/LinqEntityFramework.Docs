@@ -1,0 +1,38 @@
+---
+sidebar_position: 4001
+title: 概述
+description: Overview of information on querying in Linq Entity Framework
+author: smitpatel
+ms.date: 10/03/2019
+uid: core/querying/index
+---
+
+import QueryingOverview from '!!raw-loader!../../../../../static/samples/Querying/Overview/Program.cs';
+
+
+# 概述
+
+Linq Entity Framework 使用语言集成查询 (LINQ) 来查询数据库中的数据。 通过 LINQ 可使用 C#（或你选择的其他 .NET 语言）编写强类型查询。 它使用你派生得到的上下文和实体类来引用数据库对象。 EF Core 将 LINQ 查询的表示形式传递给数据库提供程序。 反过来，数据库提供程序将其转换为数据库特定的查询语言（例如，用于关系数据库的 SQL）。 即使结果中返回的实体已存在于上下文中，也始终对数据库执行查询。
+
+> [!TIP]
+可在 GitHub 上查看此文章的 [示例](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Querying/Overview) 。
+> 
+
+以下片段显示的几个示例展示了如何使用 Linq Entity Framework Core 完成常见任务。
+
+## 加载所有数据
+
+<CodeSnippets title="C#" language="csharp" fragment="LoadingAllData" showLineNumbers>{QueryingOverview}</CodeSnippets>
+
+## 加载单个实体
+
+<CodeSnippets title="C#" language="csharp" fragment="LoadingSingleEntity" showLineNumbers>{QueryingOverview}</CodeSnippets>
+
+## 筛选
+
+<CodeSnippets title="C#" language="csharp" fragment="Filtering" showLineNumbers>{QueryingOverview}</CodeSnippets>
+
+## 延伸阅读
+
+- 了解有关 [LINQ 查询表达式](https://learn.microsoft.com/zh-cn/dotnet/csharp/programming-guide/concepts/linq/basic-linq-query-operations) 的详细信息
+- 若要更详细地了解 LEF 中的查询处理方式，请参阅 [查询的工作原理](zh-cn/docs/querying/how-query-works) 。

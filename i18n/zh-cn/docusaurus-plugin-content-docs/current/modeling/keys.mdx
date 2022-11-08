@@ -1,0 +1,103 @@
+---
+sidebar_position: 3040
+title: 键
+description: 如何使用 Linq Entity Framework 配置实体键
+author: AndriySvyryd
+ms.date: 1/10/2021
+uid: core/modeling/keys
+---
+
+import KeysKeyId from '!!raw-loader!../../../../../static/samples/Modeling/Keys/KeyId.cs';
+
+import DataAnnotationsKeySingle from '!!raw-loader!../../../../../static/samples/Modeling/Keys/DataAnnotations/KeySingle.cs';
+import FluentAPIKeySingle from '!!raw-loader!../../../../../static/samples/Modeling/Keys/FluentAPI/KeySingle.cs';
+
+import DataAnnotationsKeyComposite from '!!raw-loader!../../../../../static/samples/Modeling/Keys/DataAnnotations/KeyComposite.cs';
+import FluentAPIKeyComposite from '!!raw-loader!../../../../../static/samples/Modeling/Keys/FluentAPI/KeyComposite.cs';
+
+# 键
+
+键用作每个实体实例的唯一标识符。 EF 中的大多数实体都有一个键，该键映射到关系数据库中主键的概念（对于没有键的实体，请参阅 [无键实体](zh-cn/docs/modeling/keyless-entity-types)）。 实体可以有除主键之外的其他键（有关详细信息，请参阅[备选键](#alternate-keys)）.
+
+## 配置主键
+
+根据约定，名为 `Id` 或 `<type name>Id` 的属性将被配置为实体的主键。
+
+<CodeSnippets title="C#" language="csharp" fragment="KeyId" metastring='{3,11}' showLineNumbers>{KeysKeyId}</CodeSnippets>
+
+> [!NOTE]
+ [从属实体类型](zh-cn/docs/modeling/owned-entities) 从属实体类型使用不同的规则来定义键。
+> 
+
+
+可将单个属性配置为实体的主键，如下所示：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="KeySingle" metastring='{3}' showLineNumbers>{DataAnnotationsKeySingle}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="KeySingle" metastring='{4}' showLineNumbers>{FluentAPIKeySingle}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+***
+
+还可将多个属性配置为实体的键 - 这称为组合键。
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="KeyComposite" metastring='{3,6}' showLineNumbers>{DataAnnotationsKeyComposite}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="KeyComposite" metastring='{4}' showLineNumbers>{FluentAPIKeyComposite}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+## 值生成
+
+对于非复合数字和 GUID 主键，EF Core 根据约定设置值生成。 例如，SQL Server 中的数字主键会自动设置为 IDENTITY 列。 有关更多信息，请参阅[有关值生成的文档](zh-cn/docs/modeling/inheritance#key-generation).
+
+## 主键名称
+
+根据约定，在关系数据库上，主键使用名称 `PK_<type name>` 进行创建。 可按如下方式配置主键约束的名称：
+
+[!code-csharp[Main](../../../samples/core/Modeling/Keys/FluentAPI/KeyName.cs?name=KeyName&highlight=5)]
+
+## 键类型和值
+
+虽然 EF Core 支持使用任何基元类型的属性作为主键（包括 `string`、`Guid`、`byte[]` 等），但并非所有数据库都支持所有类型作为键。 在某些情况下，键值可以自动转换为支持的类型，否则应[手动指定](zh-cn/docs/modeling/value-conversions)转换。
+
+向上下文添加新实体时，键属性必须始终具有非默认值，但某些类型将[由数据库生成](zh-cn/docs/modeling/generated-properties)。 在这种情况下，代码将直接生成默认值。
+
+> [!INFO]
+如果键属性的值由数据库生成，并且在添加实体时指定了非默认值，则 LEF 将假定该实体已存在于数据库中，并尝试更新它，而不是插入新的实体。 若要避免这种情况，请禁用值生成或了解如何为生成的属性指定显式值。
+> 
+## Alternate Keys
+
+An alternate key serves as an alternate unique identifier for each entity instance in addition to the primary key; it can be used as the target of a relationship. When using a relational database this maps to the concept of a unique index/constraint on the alternate key column(s) and one or more foreign key constraints that reference the column(s).
+
+> [!TIP]
+> If you just want to enforce uniqueness on a column, define a unique index rather than an alternate key (see [Indexes](xref:core/modeling/indexes)). In EF, alternate keys are read-only and provide additional semantics over unique indexes because they can be used as the target of a foreign key.
+
+Alternate keys are typically introduced for you when needed and you do not need to manually configure them. By convention, an alternate key is introduced for you when you identify a property which isn't the primary key as the target of a relationship.
+
+[!code-csharp[Main](../../../samples/core/Modeling/Keys/AlternateKey.cs?name=AlternateKey&highlight=12)]
+
+You can also configure a single property to be an alternate key:
+
+[!code-csharp[Main](../../../samples/core/Modeling/Keys/FluentAPI/AlternateKeySingle.cs?name=AlternateKeySingle&highlight=4)]
+
+You can also configure multiple properties to be an alternate key (known as a composite alternate key):
+
+[!code-csharp[Main](../../../samples/core/Modeling/Keys/FluentAPI/AlternateKeyComposite.cs?name=AlternateKeyComposite&highlight=4)]
+
+Finally, by convention, the index and constraint that are introduced for an alternate key will be named `AK_<type name>_<property name>` (for composite alternate keys `<property name>` becomes an underscore separated list of property names). You can configure the name of the alternate key's index and unique constraint:
+
+[!code-csharp[Main](../../../samples/core/Modeling/Keys/FluentAPI/AlternateKeyName.cs?name=AlternateKeyName&highlight=5)]

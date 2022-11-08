@@ -1,0 +1,832 @@
+---
+sidebar_position: 3080
+title: 值转换
+description: Configuring value converters in an Entity Framework Core model
+author: ajcvickers
+ms.date: 01/16/2021
+uid: core/modeling/value-conversions
+---
+
+import EnumToStringConversions from '!!raw-loader!../../../../../static/samples/Modeling/ValueConversions/EnumToStringConversions.cs';
+
+import BulkConfigurationCurrencyConverter from '!!raw-loader!../../../../../static/samples/Modeling/BulkConfiguration/CurrencyConverter.cs';
+
+import BulkConfigurationCurrencyContext from '!!raw-loader!../../../../../static/samples/Modeling/BulkConfiguration/CurrencyContext.cs';
+
+import SimpleValueObject from '!!raw-loader!../../../../../static/samples/Modeling/ValueConversions/SimpleValueObject.cs';
+
+import CompositeValueObject from '!!raw-loader!../../../../../static/samples/Modeling/ValueConversions/CompositeValueObject.cs';
+
+import PrimitiveCollection from '!!raw-loader!../../../../../static/samples/Modeling/ValueConversions/PrimitiveCollection.cs';
+
+import EncryptPropertyValues from '!!raw-loader!../../../../../static/samples/Modeling/ValueConversions/EncryptPropertyValues.cs';
+
+
+
+
+
+
+# 值转换
+
+值转换器可在从数据库读取或向其中写入属性值时转换属性值。 此转换可以是从同一类型的一个值转换为另一个值（例如加密字符串），也可以是从一种类型的值转换为另一种类型的值（例如数据库中枚举值和字符串的相互转换）。
+
+> [!TIP]
+通过 [从 GitHub 下载示例代码](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Modeling/ValueConversions/)，你可运行并调试到本文档中的所有代码。
+> 
+## 概述
+
+值转换器的指定涉及 ModelClrType 和 ProviderClrType。 模型类型是实体类型中的属性的 .NET 类型。 提供程序类型是数据库提供程序理解的 .NET 类型。 例如，若要在数据库中将枚举保存为字符串，模型类型是枚举的类型，而提供程序类型是 String。 这两种类型可以相同。
+
+> [!NOTE]
+已为值转换配置的属性可能需要指定一个  [`ValueComparer<T>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.changetracking.valuecomparer-1)。 有关详细信息，请参阅以下示例和 [值比较器](zh-cn/docs/modeling/value-comparers)文档.
+> 
+## 配置值转换器
+
+值转换是在 [DbContext.OnModelCreating](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.dbcontext.onmodelcreating) 中配置的。 例如，假设将一个枚举和实体类型定义为：
+
+<!--
+        public class Rider
+        {
+            public int Id { get; set; }
+            public EquineBeast Mount { get; set; }
+        }
+
+        public enum EquineBeast
+        {
+            Donkey,
+            Mule,
+            Horse,
+            Unicorn
+        }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="BeastAndRider" showLineNumbers>{EnumToStringConversions}</CodeSnippets>
+
+
+可以将转换配置为 [OnModelCreating](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.dbcontext.onmodelcreating) 将枚举值（如“Donkey”、“Mule”等字符串）存储在数据库中;只需提供一个从 `ModelClrType` 转换到 `ProviderClrType` 的函数，另一个函数用于相反的转换：
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .Entity<Rider>()
+                    .Property(e => e.Mount)
+                    .HasConversion(
+                        v => v.ToString(),
+                        v => (EquineBeast)Enum.Parse(typeof(EquineBeast), v));
+            }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ExplicitConversion" showLineNumbers>{EnumToStringConversions}</CodeSnippets>
+
+> [!NOTE]
+绝不会向值转换器传递 null 值。 数据库列中的 null 在实体实例中始终为 null，反之亦然。 这使实现转换更容易，并允许在可为 null 和不可为 null 的属性之间共享转换。
+> 
+### 批量配置值转换器
+
+为使用相关 CLR 类型的每个属性配置相同的值转换器很常见。 可以针对整个 [模型使用预约定模型配置](https://learn.microsoft.com/zh-cn/ef/core/modeling/bulk-configuration#pre-convention-configuration) 一次，而不是为每个属性手动执行此操作。 为此，请将值转换器定义为类：
+
+<CodeSnippets title="C#" language="csharp" fragment="CurrencyConverter" showLineNumbers>{BulkConfigurationCurrencyConverter}</CodeSnippets>
+
+然后，在上下文类型中重写 [ConfigureConventions](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.dbcontext.configureconventions) 并配置转换器，如下所示：
+
+<CodeSnippets title="C#" language="csharp" fragment="ConfigureConventions" showLineNumbers>{BulkConfigurationCurrencyContext}</CodeSnippets>
+
+## 预定义的转换
+
+EF Core 含有许多预定义转换，不需要手动编写转换函数。 而是根据模型中的属性类型和请求的数据库提供程序类型选取要使用的转换。
+
+例如，枚举到字符串转换用作上面的示例，但在提供程序类型配置为 `string` 使用泛型类型 [`HasConversion`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.metadata.builders.propertybuilder.hasconversion)时，EF Core 实际上会自动执行此操作：
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .Entity<Rider>()
+                    .Property(e => e.Mount)
+                    .HasConversion<string>();
+            }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ConversionByClrType" showLineNumbers>{EnumToStringConversions}</CodeSnippets>
+
+可通过显式地指定数据库列类型实现相同的操作。 例如，如果实体类型的定义如下：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="ConversionByDatabaseType" showLineNumbers>{EnumToStringConversions}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="ConversionByDatabaseTypeFluent" showLineNumbers>{EnumToStringConversions}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+***
+
+然后，枚举值将保存为数据库中的字符串，而无需进 [OnModelCreating](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.dbcontext.onmodelcreating) 一步配置。
+
+## ValueConverter 类
+
+如上所示调用 [`HasConversion`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.metadata.builders.propertybuilder.hasconversion) 将创建一个 [`ValueConverter<TModel,TProvider>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion.valueconverter-2) 实例，并在属性上设置它。 可改为显式地创建 ValueConverter。 例如：
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                var converter = new ValueConverter<EquineBeast, string>(
+                    v => v.ToString(),
+                    v => (EquineBeast)Enum.Parse(typeof(EquineBeast), v));
+
+                modelBuilder
+                    .Entity<Rider>()
+                    .Property(e => e.Mount)
+                    .HasConversion(converter);
+            }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ConversionByConverterInstance" showLineNumbers>{EnumToStringConversions}</CodeSnippets>
+
+多个属性使用同一个转换时，这非常有用。
+
+## 内置转换器
+
+如上所述，LEF Core 附带了一组预定义 [`ValueConverter<TModel,TProvider>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion.valueconverter-2) 类，这些 [Microsoft.EntityFrameworkCore.Storage.ValueConversion](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion) 类位于命名空间中。 在许多情况下，EF 将根据模型中属性的类型和在数据库中请求的类型，选择适当的内置转换器，正如上面的枚举转换示例所示。 例如，对 `bool` 属性使用 `.HasConversion<int>()` 会使 EF Core 将布尔值转换为数值零和一：
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .Entity<User>()
+                    .Property(e => e.IsActive)
+                    .HasConversion<int>();
+            }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ConversionByBuiltInBoolToInt" showLineNumbers>{EnumToStringConversions}</CodeSnippets>
+
+这与创建内置 [`BoolToZeroOneConverter<TProvider>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion.booltozerooneconverter-1) 实例的功能相同，并显式设置它：
+
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                var converter = new BoolToZeroOneConverter<int>();
+
+                modelBuilder
+                    .Entity<User>()
+                    .Property(e => e.IsActive)
+                    .HasConversion(converter);
+            }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ConversionByBuiltInBoolToIntExplicit" showLineNumbers>{EnumToStringConversions}</CodeSnippets>
+
+
+下表汇总了从模型/属性类型到数据库提供程序类型的常用预定义转换。 表中的 `any_numeric_type` 表示 `int`, `short`, `long`, `byte`, `uint`, `ushort`, `ulong`, `sbyte`, `char`, `decimal`, `float`, 或 `double`.
+
+
+| 模型/属性类型	       | 提供程序/数据库类型      | 转换                                                      | 使用情况
+|:--------------------|------------------------|-----------------------------------------------------------|------
+| bool                | any_numeric_type       | False/true to 0/1                                         | `.HasConversion<any_numeric_type>()`
+|                     | any_numeric_type       | False/true to any two numbers                             | 使用 [`BoolToTwoValuesConverter<TProvider>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion.booltotwovaluesconverter-1)
+|                     | string                 | False/true to "N"/"Y"                                     | `.HasConversion<string>()`
+|                     | string                 | False/true to any two strings                             | 使用 [`BoolToStringConverter`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion.booltostringconverter)
+| any_numeric_type    | bool                   | 0/1 to false/true                                         | `.HasConversion<bool>()`
+|                     | any_numeric_type       | Simple cast                                               | `.HasConversion<any_numeric_type>()`
+|                     | string                 | The number as a string                                    | `.HasConversion<string>()`
+| Enum                | any_numeric_type       | The numeric value of the enum                             | `.HasConversion<any_numeric_type>()`
+|                     | string                 | The string representation of the enum value               | `.HasConversion<string>()`
+| string              | bool                   | Parses the string as a bool                               | `.HasConversion<bool>()`
+|                     | any_numeric_type       | Parses the string as the given numeric type               | `.HasConversion<any_numeric_type>()`
+|                     | char                   | The first character of the string                         | `.HasConversion<char>()`
+|                     | DateTime               | Parses the string as a DateTime                           | `.HasConversion<DateTime>()`
+|                     | DateTimeOffset         | Parses the string as a DateTimeOffset                     | `.HasConversion<DateTimeOffset>()`
+|                     | TimeSpan               | Parses the string as a TimeSpan                           | `.HasConversion<TimeSpan>()`
+|                     | Guid                   | Parses the string as a Guid                               | `.HasConversion<Guid>()`
+|                     | byte[]                 | The string as UTF8 bytes                                  | `.HasConversion<byte[]>()`
+| char                | string                 | A single character string                                 | `.HasConversion<string>()`
+| DateTime            | long                   | Encoded date/time preserving DateTime.Kind                | `.HasConversion<long>()`
+|                     | long                   | Ticks                                                     | 使用 [`DateTimeToTicksConverter`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion.datetimetoticksconverter)
+|                     | string                 | Invariant culture date/time string                        | `.HasConversion<string>()`
+| DateTimeOffset      | long                   | Encoded date/time with offset                             | `.HasConversion<long>()`
+|                     | string                 | Invariant culture date/time string with offset            | `.HasConversion<string>()`
+| TimeSpan            | long                   | Ticks                                                     | `.HasConversion<long>()`
+|                     | string                 | Invariant culture time span string                        | `.HasConversion<string>()`
+| Uri                 | string                 | The URI as a string                                       | `.HasConversion<string>()`
+| PhysicalAddress     | string                 | The address as a string                                   | `.HasConversion<string>()`
+|                     | byte[]                 | Bytes in big-endian network order                         | `.HasConversion<byte[]>()`
+| IPAddress           | string                 | The address as a string                                   | `.HasConversion<string>()`
+|                     | byte[]                 | Bytes in big-endian network order                         | `.HasConversion<byte[]>()`
+| Guid                | string                 | The GUID in 'dddddddd-dddd-dddd-dddd-dddddddddddd' format | `.HasConversion<string>()`
+|                     | byte[]                 | Bytes in .NET binary serialization order                  | `.HasConversion<byte[]>()`
+
+请注意，这些转换假定值的格式适用于转换。 例如，如果字符串值无法分析为数字，从字符串到数字的转换将失败。
+
+内置转换器的完整列表如下：
+
+* Converting bool properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.BoolToStringConverter> - Bool to strings such as "N" and "Y"
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.BoolToTwoValuesConverter%601> - Bool to any two values
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.BoolToZeroOneConverter%601> - Bool to zero and one
+* Converting byte array properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.BytesToStringConverter> - Byte array to Base64-encoded string
+* Any conversion that requires only a type-cast
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.CastingConverter%602> - Conversions that require only a type cast
+* Converting char properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.CharToStringConverter> - Char to single character string
+* Converting <xref:System.DateTimeOffset> properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.DateTimeOffsetToBinaryConverter> - <xref:System.DateTimeOffset> to binary-encoded 64-bit value
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.DateTimeOffsetToBytesConverter> - <xref:System.DateTimeOffset> to byte array
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.DateTimeOffsetToStringConverter> - <xref:System.DateTimeOffset> to string
+* Converting <xref:System.DateTime> properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.DateTimeToBinaryConverter> - <xref:System.DateTime> to 64-bit value including DateTimeKind
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.DateTimeToStringConverter> - <xref:System.DateTime> to string
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.DateTimeToTicksConverter> - <xref:System.DateTime> to ticks
+* Converting enum properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.EnumToNumberConverter%602> - Enum to underlying number
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.EnumToStringConverter%601> - Enum to string
+* Converting <xref:System.Guid> properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.GuidToBytesConverter> - <xref:System.Guid> to byte array
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.GuidToStringConverter> - <xref:System.Guid> to string
+* Converting <xref:System.Net.IPAddress> properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.IPAddressToBytesConverter> - <xref:System.Net.IPAddress> to byte array
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.IPAddressToStringConverter> - <xref:System.Net.IPAddress> to string
+* Converting numeric (int, double, decimal, etc.) properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.NumberToBytesConverter%601> - Any numerical value to byte array
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.NumberToStringConverter%601> - Any numerical value to string
+* Converting <xref:System.Net.NetworkInformation.PhysicalAddress> properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.PhysicalAddressToBytesConverter> - <xref:System.Net.NetworkInformation.PhysicalAddress> to byte array
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.PhysicalAddressToStringConverter> - <xref:System.Net.NetworkInformation.PhysicalAddress> to string
+* Converting string properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToBoolConverter> - Strings such as "N" and "Y" to bool
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToBytesConverter> - String to UTF8 bytes
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToCharConverter> - String to character
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToDateTimeConverter> - String to <xref:System.DateTime>
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToDateTimeOffsetConverter> - String to <xref:System.DateTimeOffset>
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToEnumConverter%601> - String to enum
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToGuidConverter> - String to <xref:System.Guid>
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToNumberConverter%601> - String to numeric type
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToTimeSpanConverter> - String to <xref:System.TimeSpan>
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.StringToUriConverter> - String to <xref:System.Uri>
+* Converting <xref:System.TimeSpan> properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.TimeSpanToStringConverter> - <xref:System.TimeSpan> to string
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.TimeSpanToTicksConverter> - <xref:System.TimeSpan> to ticks
+* Converting <xref:System.Uri> properties:
+  * <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.UriToStringConverter> - <xref:System.Uri> to string
+
+Note that all the built-in converters are stateless and so a single instance can be safely shared by multiple properties.
+
+## Column facets and mapping hints
+
+Some database types have facets that modify how the data is stored. These include:
+
+* Precision and scale for decimals and date/time columns
+* Size/length for binary and string columns
+* Unicode for string columns
+
+These facets can be configured in the normal way for a property that uses a value converter, and will apply to the converted database type. For example, when converting from an enum to strings, we can specify that the database column should be non-Unicode and store up to 20 characters:
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .Entity<Rider>()
+                    .Property(e => e.Mount)
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+            }
+-->
+[!code-csharp[ConversionByClrTypeWithFacets](../../../samples/core/Modeling/ValueConversions/EnumToStringConversions.cs?name=ConversionByClrTypeWithFacets)]
+
+Or, when creating the converter explicitly:
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                var converter = new ValueConverter<EquineBeast, string>(
+                    v => v.ToString(),
+                    v => (EquineBeast)Enum.Parse(typeof(EquineBeast), v));
+
+                modelBuilder
+                    .Entity<Rider>()
+                    .Property(e => e.Mount)
+                    .HasConversion(converter)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+            }
+-->
+[!code-csharp[ConversionByConverterInstanceWithFacets](../../../samples/core/Modeling/ValueConversions/EnumToStringConversions.cs?name=ConversionByConverterInstanceWithFacets)]
+
+This results in a `varchar(20)` column when using EF Core migrations against SQL Server:
+
+```sql
+CREATE TABLE [Rider] (
+    [Id] int NOT NULL IDENTITY,
+    [Mount] varchar(20) NOT NULL,
+    CONSTRAINT [PK_Rider] PRIMARY KEY ([Id]));
+```
+
+However, if by default all `EquineBeast` columns should be `varchar(20)`, then this information can be given to the value converter as a <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.ConverterMappingHints>. For example:
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                var converter = new ValueConverter<EquineBeast, string>(
+                    v => v.ToString(),
+                    v => (EquineBeast)Enum.Parse(typeof(EquineBeast), v),
+                    new ConverterMappingHints(size: 20, unicode: false));
+
+                modelBuilder
+                    .Entity<Rider>()
+                    .Property(e => e.Mount)
+                    .HasConversion(converter);
+            }
+-->
+[!code-csharp[ConversionByConverterInstanceWithMappingHints](../../../samples/core/Modeling/ValueConversions/EnumToStringConversions.cs?name=ConversionByConverterInstanceWithMappingHints)]
+
+Now any time this converter is used, the database column will be non-unicode with a max length of 20. However, these are only hints since they are overridden by any facets explicitly set on the mapped property.
+
+## 示例
+
+### 简单值对象
+
+此示例使用简单类型来包装基元类型。 希望模型中的类型比基元类型更具体（因而更具类型安全性）时，这很有用。 在此示例中，该类型为 `Dollars`，它包装小数基元：
+
+<!--
+        public readonly struct Dollars
+        {
+            public Dollars(decimal amount) 
+                => Amount = amount;
+            
+            public decimal Amount { get; }
+
+            public override string ToString() 
+                => $"${Amount}";
+        }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="SimpleValueObject" showLineNumbers>{SimpleValueObject}</CodeSnippets>
+
+这可用于实体类型中：
+
+<!--
+        public class Order
+        {
+            public int Id { get; set; }
+
+            public Dollars Price { get; set; }
+        }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="SimpleValueObjectModel" showLineNumbers>{SimpleValueObject}</CodeSnippets>
+
+还可在存储到数据库中时被转换为基本 `decimal`：
+
+<!--
+                modelBuilder.Entity<Order>()
+                    .Property(e => e.Price)
+                    .HasConversion(
+                        v => v.Amount,
+                        v => new Dollars(v));
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ConfigureImmutableStructProperty" showLineNumbers>{SimpleValueObject}</CodeSnippets>
+
+> [!NOTE]
+ This value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that EF Core can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
+> 
+
+### 复合值对象
+
+在上一个示例中，值对象类型仅包含一个属性。 更常见的是：值对象类型组成共同构成一个域概念的多个属性。 例如，一个通用的 `Money` 类型包含金额和货币：
+
+<!--
+        public readonly struct Money
+        {
+            [JsonConstructor]
+            public Money(decimal amount, Currency currency)
+            {
+                Amount = amount;
+                Currency = currency;
+            }
+
+            public override string ToString()
+                => (Currency == Currency.UsDollars ? "$" : "£") + Amount;
+
+            public decimal Amount { get; }
+            public Currency Currency { get; }
+        }
+
+        public enum Currency
+        {
+            UsDollars,
+            PoundsStirling
+        }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="CompositeValueObject" showLineNumbers>{CompositeValueObject}</CodeSnippets>
+
+
+可以像以前一样在实体类型中使用此值对象：
+
+<!--
+        public class Order
+        {
+            public int Id { get; set; }
+
+            public Money Price { get; set; }
+        }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="CompositeValueObjectModel" showLineNumbers>{CompositeValueObject}</CodeSnippets>
+
+值转换器目前只能执行值与一个数据库列之间的转换。 此限制意味着对象的所有属性值都必须被编码为一个列值。 这通常通过序列化对象进入数据库时进行处理，然后在出路时再次反序列化它。例如，使用 [`System.Text.Json`](https://learn.microsoft.com/zh-cn/dotnet/api/system.text.json)：
+<!--
+                modelBuilder.Entity<Order>()
+                    .Property(e => e.Price)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, null),
+                        v => JsonSerializer.Deserialize<Money>(v, null));
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ConfigureCompositeValueObject" showLineNumbers>{CompositeValueObject}</CodeSnippets>
+
+> [!NOTE]
+在 EF Core 6.0 中，我们计划允许将一个对象映射到多个列，从而不必使用序列化。 [GitHub 问题 #13947](https://github.com/dotnet/efcore/issues/13947) 对此进行跟踪。
+> 
+
+> [!NOTE]
+As with the previous example, this value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that EF Core can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
+> 
+
+### 基元的集合
+
+序列化还可用于存储基元值的集合。 例如：
+
+<!--
+        public class Post
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public string Contents { get; set; }
+
+            public ICollection<string> Tags { get; set; }
+        }
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="PrimitiveCollectionModel" showLineNumbers>{PrimitiveCollection}</CodeSnippets>
+
+再次使用 [`System.Text.Json`](https://learn.microsoft.com/zh-cn/dotnet/api/system.text.json) ：
+
+
+<!--
+                modelBuilder.Entity<Post>()
+                    .Property(e => e.Tags)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, null),
+                        v => JsonSerializer.Deserialize<List<string>>(v, null),
+                        new ValueComparer<ICollection<string>>(
+                            (c1, c2) => c1.SequenceEqual(c2),
+                            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                            c => (ICollection<string>)c.ToList()));
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ConfigurePrimitiveCollection" showLineNumbers>{PrimitiveCollection}</CodeSnippets>
+
+
+`ICollection<string>` 表示可变引用类型。 这意味着需要一个， [`ValueComparer<T>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.changetracking.valuecomparer-1) 以便 EF Core 可以正确跟踪和检测更改。 有关详细信息，请参阅[`值比较器`](https://learn.microsoft.com/zh-cn/ef/core/modeling/value-comparers)。
+
+### Collections of value objects
+
+Combining the previous two examples together we can create a collection of value objects. For example, consider an `AnnualFinance` type that models blog finances for a single year:
+
+<!--
+        public readonly struct AnnualFinance
+        {
+            [JsonConstructor]
+            public AnnualFinance(int year, Money income, Money expenses)
+            {
+                Year = year;
+                Income = income;
+                Expenses = expenses;
+            }
+
+            public int Year { get; }
+            public Money Income { get; }
+            public Money Expenses { get; }
+            public Money Revenue => new Money(Income.Amount - Expenses.Amount, Income.Currency);
+        }
+-->
+[!code-csharp[ValueObjectCollection](../../../samples/core/Modeling/ValueConversions/ValueObjectCollection.cs?name=ValueObjectCollection)]
+
+This type composes several of the `Money` types we created previously:
+
+<!--
+        public readonly struct Money
+        {
+            [JsonConstructor]
+            public Money(decimal amount, Currency currency)
+            {
+                Amount = amount;
+                Currency = currency;
+            }
+
+            public override string ToString()
+                => (Currency == Currency.UsDollars ? "$" : "£") + Amount;
+
+            public decimal Amount { get; }
+            public Currency Currency { get; }
+        }
+
+        public enum Currency
+        {
+            UsDollars,
+            PoundsStirling
+        }
+-->
+[!code-csharp[ValueObjectCollectionMoney](../../../samples/core/Modeling/ValueConversions/ValueObjectCollection.cs?name=ValueObjectCollectionMoney)]
+
+We can then add a collection of `AnnualFinance` to our entity type:
+
+<!--
+        public class Blog
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            
+            public IList<AnnualFinance> Finances { get; set; }
+        }
+-->
+[!code-csharp[ValueObjectCollectionModel](../../../samples/core/Modeling/ValueConversions/ValueObjectCollection.cs?name=ValueObjectCollectionModel)]
+
+And again use serialization to store this:
+
+<!--
+                modelBuilder.Entity<Blog>()
+                    .Property(e => e.Finances)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, null),
+                        v => JsonSerializer.Deserialize<List<AnnualFinance>>(v, null),
+                        new ValueComparer<IList<AnnualFinance>>(
+                            (c1, c2) => c1.SequenceEqual(c2),
+                            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                            c => (IList<AnnualFinance>)c.ToList()));
+-->
+[!code-csharp[ConfigureValueObjectCollection](../../../samples/core/Modeling/ValueConversions/ValueObjectCollection.cs?name=ConfigureValueObjectCollection)]
+
+> [!NOTE]
+> As before, this conversion requires a <xref:Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer%601>. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
+
+### Value objects as keys
+
+Sometimes primitive key properties may be wrapped in value objects to add an additional level of type-safety in assigning values. For example, we could implement a key type for blogs, and a key type for posts:
+
+<!--
+        public readonly struct BlogKey
+        {
+            public BlogKey(int id) => Id = id;
+            public int Id { get; }
+        }
+
+        public readonly struct PostKey
+        {
+            public PostKey(int id) => Id = id;
+            public int Id { get; }
+        }
+-->
+[!code-csharp[KeyValueObjects](../../../samples/core/Modeling/ValueConversions/KeyValueObjects.cs?name=KeyValueObjects)]
+
+These can then be used in the domain model:
+
+<!--
+        public class Blog
+        {
+            public BlogKey Id { get; set; }
+            public string Name { get; set; }
+
+            public ICollection<Post> Posts { get; set; }
+        }
+
+        public class Post
+        {
+            public PostKey Id { get; set; }
+
+            public string Title { get; set; }
+            public string Content { get; set; }
+
+            public BlogKey? BlogId { get; set; }
+            public Blog Blog { get; set; }
+        }
+-->
+[!code-csharp[KeyValueObjectsModel](../../../samples/core/Modeling/ValueConversions/KeyValueObjects.cs?name=KeyValueObjectsModel)]
+
+Notice that `Blog.Id` cannot accidentally be assigned a `PostKey`, and `Post.Id` cannot accidentally be assigned a `BlogKey`. Similarly, the `Post.BlogId` foreign key property must be assigned a `BlogKey`.
+
+> [!NOTE]
+> Showing this pattern does not mean we recommend it. Carefully consider whether this level of abstraction is helping or hampering your development experience. Also, consider using navigations and generated keys instead of dealing with key values directly.
+
+These key properties can then be mapped using value converters:
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                var blogKeyConverter = new ValueConverter<BlogKey, int>(
+                    v => v.Id,
+                    v => new BlogKey(v));
+
+                modelBuilder.Entity<Blog>().Property(e => e.Id).HasConversion(blogKeyConverter);
+
+                modelBuilder.Entity<Post>(
+                    b =>
+                        {
+                            b.Property(e => e.Id).HasConversion(v => v.Id, v => new PostKey(v));
+                            b.Property(e => e.BlogId).HasConversion(blogKeyConverter);
+                        });
+            }
+-->
+[!code-csharp[ConfigureKeyValueObjects](../../../samples/core/Modeling/ValueConversions/KeyValueObjects.cs?name=ConfigureKeyValueObjects)]
+
+> [!NOTE]
+> Currently key properties with conversions cannot use generated key values. Vote for [GitHub issue #11597](https://github.com/dotnet/efcore/issues/11597) to have this limitation removed.
+
+### Use ulong for timestamp/rowversion
+
+SQL Server supports automatic [optimistic concurrency](xref:core/saving/concurrency) using [8-byte binary `rowversion`/`timestamp` columns](/sql/t-sql/data-types/rowversion-transact-sql). These are always read from and written to the database using an 8-byte array. However, byte arrays are a mutable reference type, which makes them somewhat painful to deal with. Value converters allow the `rowversion` to instead be mapped to a `ulong` property, which is much more appropriate and easy to use than the byte array. For example, consider a `Blog` entity with a ulong concurrency token:
+
+<!--
+        public class Blog
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public ulong Version { get; set; }
+        }
+-->
+[!code-csharp[ULongConcurrencyModel](../../../samples/core/Modeling/ValueConversions/ULongConcurrency.cs?name=ULongConcurrencyModel)]
+
+This can be mapped to a SQL server `rowversion` column using a value converter:
+
+<!--
+                modelBuilder.Entity<Blog>()
+                    .Property(e => e.Version)
+                    .IsRowVersion()
+                    .HasConversion<byte[]>();
+-->
+[!code-csharp[ConfigureULongConcurrency](../../../samples/core/Modeling/ValueConversions/ULongConcurrency.cs?name=ConfigureULongConcurrency)]
+
+### Specify the DateTime.Kind when reading dates
+
+SQL Server discards the <xref:System.DateTime.Kind%2A?displayProperty=nameWithType> flag when storing a <xref:System.DateTime> as a [`datetime`](/sql/t-sql/data-types/datetime-transact-sql) or [`datetime2`](/sql/t-sql/data-types/datetime2-transact-sql). This means that DateTime values coming back from the database always have a <xref:System.DateTimeKind> of `Unspecified`.
+
+Value converters can be used in two ways to deal with this. First, EF Core has a value converter that creates an 8-byte opaque value which preserves the `Kind` flag. For example:
+
+<!--
+                modelBuilder.Entity<Post>()
+                    .Property(e => e.PostedOn)
+                    .HasConversion<long>();
+-->
+[!code-csharp[ConfigurePreserveDateTimeKind1](../../../samples/core/Modeling/ValueConversions/PreserveDateTimeKind.cs?name=ConfigurePreserveDateTimeKind1)]
+
+This allows DateTime values with different `Kind` flags to be mixed in the database.
+
+The problem with this approach is that the database no longer has recognizable `datetime` or `datetime2` columns. So instead it is common to always store UTC time (or, less commonly, always local time) and then either ignore the `Kind` flag or set it to the appropriate value using a value converter. For example, the converter below ensures that the `DateTime` value read from the database will have the <xref:System.DateTimeKind> `UTC`:
+
+<!--
+                modelBuilder.Entity<Post>()
+                    .Property(e => e.LastUpdated)
+                    .HasConversion(
+                        v => v,
+                        v => new DateTime(v.Ticks, DateTimeKind.Utc));
+-->
+[!code-csharp[ConfigurePreserveDateTimeKind2](../../../samples/core/Modeling/ValueConversions/PreserveDateTimeKind.cs?name=ConfigurePreserveDateTimeKind2)]
+
+If a mix of local and UTC values are being set in entity instances, then the converter can be used to convert appropriately before inserting. For example:
+
+<!--
+                modelBuilder.Entity<Post>()
+                    .Property(e => e.LastUpdated)
+                    .HasConversion(
+                        v => v.ToUniversalTime(),
+                        v => new DateTime(v.Ticks, DateTimeKind.Utc));
+-->
+[!code-csharp[ConfigurePreserveDateTimeKind3](../../../samples/core/Modeling/ValueConversions/PreserveDateTimeKind.cs?name=ConfigurePreserveDateTimeKind3)]
+
+> [!NOTE]
+> Carefully consider unifying all database access code to use UTC time all the time, only dealing with local time when presenting data to users.
+
+### Use case-insensitive string keys
+
+Some databases, including SQL Server, perform case-insensitive string comparisons by default. .NET, on the other hand, performs case-sensitive string comparisons by default. This means that a foreign key value like "DotNet" will match the primary key value "dotnet" on SQL Server, but will not match it in EF Core. A value comparer for keys can be used to force EF Core into case-insensitive string comparisons like in the database. For example, consider a blog/posts model with string keys:
+
+<!--
+        public class Blog
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
+
+            public ICollection<Post> Posts { get; set; }
+        }
+
+        public class Post
+        {
+            public string Id { get; set; }
+            public string Title { get; set; }
+            public string Content { get; set; }
+
+            public string BlogId { get; set; }
+            public Blog Blog { get; set; }
+        }
+-->
+[!code-csharp[CaseInsensitiveStringsModel](../../../samples/core/Modeling/ValueConversions/CaseInsensitiveStrings.cs?name=CaseInsensitiveStringsModel)]
+
+This will not work as expected if some of the `Post.BlogId` values have different casing. The errors caused by this will depend on what the application is doing, but typically involve graphs of objects that are not [fixed-up](xref:core/change-tracking/relationship-changes) correctly, and/or updates that fail because the FK value is wrong. A value comparer can be used to correct this:
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                var comparer = new ValueComparer<string>(
+                    (l, r) => string.Equals(l, r, StringComparison.OrdinalIgnoreCase),
+                    v => v.ToUpper().GetHashCode(),
+                    v => v);
+
+                modelBuilder.Entity<Blog>()
+                    .Property(e => e.Id)
+                    .Metadata.SetValueComparer(comparer);
+
+                modelBuilder.Entity<Post>(
+                    b =>
+                        {
+                            b.Property(e => e.Id).Metadata.SetValueComparer(comparer);
+                            b.Property(e => e.BlogId).Metadata.SetValueComparer(comparer);
+                        });
+            }
+-->
+[!code-csharp[ConfigureCaseInsensitiveStrings](../../../samples/core/Modeling/ValueConversions/CaseInsensitiveStrings.cs?name=ConfigureCaseInsensitiveStrings)]
+
+> [!NOTE]
+> .NET string comparisons and database string comparisons can differ in more than just case sensitivity. This pattern works for simple ASCII keys, but may fail for keys with any kind of culture-specific characters. See [Collations and Case Sensitivity](xref:core/miscellaneous/collations-and-case-sensitivity) for more information.
+
+### Handle fixed-length database strings
+
+The previous example did not need a value converter. However, a converter can be useful for fixed-length database string types like `char(20)` or `nchar(20)`. Fixed-length strings are padded to their full length whenever a value is inserted into the database. This means that a key value of "`dotnet`" will be read back from the database as "`dotnet..............`", where `.` represents a space character. This will then not compare correctly with key values that are not padded.
+
+A value converter can be used to trim the padding when reading key values. This can be combined with the value comparer in the previous example to compare fixed length case-insensitive ASCII keys correctly. For example:
+
+<!--
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                var converter = new ValueConverter<string, string>(
+                    v => v,
+                    v => v.Trim());
+                
+                var comparer = new ValueComparer<string>(
+                    (l, r) => string.Equals(l, r, StringComparison.OrdinalIgnoreCase),
+                    v => v.ToUpper().GetHashCode(),
+                    v => v);
+
+                modelBuilder.Entity<Blog>()
+                    .Property(e => e.Id)
+                    .HasColumnType("char(20)")
+                    .HasConversion(converter, comparer);
+
+                modelBuilder.Entity<Post>(
+                    b =>
+                        {
+                            b.Property(e => e.Id).HasColumnType("char(20)").HasConversion(converter, comparer);
+                            b.Property(e => e.BlogId).HasColumnType("char(20)").HasConversion(converter, comparer);
+                        });
+            }
+-->
+[!code-csharp[ConfigureFixedLengthStrings](../../../samples/core/Modeling/ValueConversions/FixedLengthStrings.cs?name=ConfigureFixedLengthStrings)]
+
+### 加密属性值
+
+值转换器可用于在将属性值发送到数据库之前对其加密，再在发送回来时解密。例如，使用字符串反转替代实际加密算法：
+
+<!--
+                modelBuilder.Entity<User>().Property(e => e.Password).HasConversion(
+                    v => new string(v.Reverse().ToArray()),
+                    v => new string(v.Reverse().ToArray()));
+-->
+
+<CodeSnippets title="C#" language="csharp" fragment="ConfigureEncryptPropertyValues" showLineNumbers>{EncryptPropertyValues}</CodeSnippets>
+
+> [!NOTE]
+目前没有任何方法可以从值转换器内获取对当前 DbContext 或其他会话状态的引用。 这限制了可以使用的加密类型。 投票赞成 [`GitHub 问题 #11597`](https://github.com/dotnet/efcore/issues/12205)，以消除此限制。
+> 
+> [!WARNING]
+//TODO:分析这种情况可能性
+如果通过自行加密保护来敏感数据，确保了解所有可能的影响。 请考虑改为使用预先生成的加密机制，例如 SQL Server 上的 [Always Encrypted](https://learn.microsoft.com/zh-cn/sql/relational-databases/security/encryption/always-encrypted-database-engine)。
+> 
+
+## Limitations
+
+There are a few known current limitations of the value conversion system:
+
+* As noted above, `null` cannot be converted. Please vote (👍) for [GitHub issue #13850](https://github.com/dotnet/efcore/issues/13850) if this is something you need.
+* There is currently no way to spread a conversion of one property to multiple columns or vice-versa. Please vote (👍) for [GitHub issue #13947](https://github.com/dotnet/efcore/issues/13947) if this is something you need.
+* Value generation is not supported for most keys mapped through value converters. Please vote (👍) for [GitHub issue #11597](https://github.com/dotnet/efcore/issues/11597) if this is something you need.
+* Value conversions cannot reference the current DbContext instance. Please vote (👍) for [GitHub issue #12205](https://github.com/dotnet/efcore/issues/12205) if this is something you need.
+* Parameters using value-converted types cannot currently be used in raw SQL APIs. Please vote (👍) for [GitHub issue #27534](https://github.com/dotnet/efcore/issues/27354) if this is something you need.
+
+Removal of these limitations is being considered for future releases.

@@ -1,0 +1,66 @@
+---
+sidebar_position: 4040
+title: 分页
+description: Writing paginating queries in Entity Framework Core
+author: roji
+ms.date: 12/19/2021
+uid: core/querying/pagination
+---
+
+import PaginationQuery from '!!raw-loader!../../../../../static/samples/Querying/Pagination/Program.cs';
+
+
+# 分页
+
+分页是指在页面中检索结果，而不是一次性检索结果;这通常针对大型结果集完成，其中显示用户界面，允许用户导航到结果的下一页或上一页。
+
+> [!WARNING]
+无论使用哪种分页方法，始终确保排序是完全唯一的。 例如，如果结果仅按日期排序，但同一日期可能有多个结果，则在分页时跳过结果，因为分页查询在两个分页查询中按不同顺序排序。 按日期和 ID (或任何其他唯一属性或属性组合进行排序) 使排序完全唯一，并避免了此问题。 请注意，关系数据库默认不应用任何排序，即使在主键上也是如此。
+> 
+
+## 偏移分页
+
+使用数据库实现分页的一种常见方法是在 SQL) 中使用 Skip 和 Take (OFFSETLIMIT 。 给定页面大小为 10 个结果，可以使用 EF Core 提取第三页，如下所示：
+
+<CodeSnippets title="C#" language="csharp" fragment="OffsetPagination" metastring='{4,5}' showLineNumbers>{PaginationQuery}</CodeSnippets>
+
+遗憾的是，虽然这种技术非常直观，但它也有一些严重的缺点：
+
+1. 数据库仍必须处理前 20 个条目，即使它们未返回到应用程序：这会创建可能显著计算负载，该负载会随着跳过的行数而增加。
+2. 如果同时发生任何更新，则分页最终可能会跳过某些条目或显示两次。 例如，如果用户从第 2 页移动到第 3 页时删除了条目，则整个结果集“向上移动”，将跳过一个条目。
+
+## Keyset 分页
+
+建议使用基于偏移的分页（有时称为 键集分 页或 基于查找的分页 ）的替代方法是使用 WHERE 子句跳过行，而不是偏移量。 这意味着请记住从提取 (的最后一个条目中获取的相关值，而不是其偏移量) ，并要求在该行之后的下一行。 例如，假设我们提取的最后一个页面的最后一个条目的 ID 值为 55，我们只需执行以下操作：
+
+<CodeSnippets title="C#" language="csharp" fragment="KeySetPagination" metastring='{4}' showLineNumbers>{PaginationQuery}</CodeSnippets>
+
+假设定义了索引 `PostId`，则此查询非常高效，并且对 ID 值较低时发生的任何并发更改也不敏感。
+
+Keyset 分页适用于用户向前和向后导航但不支持随机访问的分页接口，用户可以跳转到任何特定页面。 随机访问分页需要使用偏移量分页，如上所述：由于偏移分页的缺点，请仔细考虑是否确实需要随机访问分页，或者下一页导航是否足够。 如果需要随机访问分页，可靠的实现可以在导航到下一页/上一页时使用键集分页，并在跳转到任何其他页面时偏移导航。
+
+### 多个分页键
+
+使用键集分页时，经常需要通过多个属性进行排序。 例如，以下查询按日期和 ID 分页：
+
+<CodeSnippets title="C#" language="csharp" fragment="KeySetPaginationWithMultipleKeys" metastring='{6}' showLineNumbers>{PaginationQuery}</CodeSnippets>
+
+
+这可确保下一页准确选取上一页结束的位置。 添加更多的排序键时，可以添加其他子句。
+
+> [!NOTE]
+大多数 SQL 数据库都支持更简单、更高效的上述版本，使用行值： WHERE (Date, Id) > (@lastDate, @lastId) EF Core 目前不支持在 LINQ 查询中表示这一点，这是由 [#26822](https://github.com/dotnet/efcore/issues/26822) 跟踪的。
+> 
+
+## 索引
+
+与任何其他查询一样，适当的索引对于良好的性能至关重要：请确保具有与分页排序对应的索引。 如果按多个列排序，则可以定义多个列的索引;这称为 复合索引。
+
+有关详细信息， [请参阅索引的文档页](zh-cn/docs/modeling/indexes).
+
+## 其他资源
+
+* 若要详细了解基于偏移的分页的缺点和键集分页的缺点， [请参阅此文章](https://use-the-index-luke.com/no-offset)。
+* [.NET Data Community Standup 会话](https://www.youtube.com/watch?v=DIKH-q-gJNU) 我们将讨论分页并演示上述所有概念。
+* 比较偏移量和键集分页的技术深入[演示](https://www.slideshare.net/MarkusWinand/p2d2-pagination-done-the-postgresql-way)。 虽然内容处理 PostgreSQL 数据库，但常规信息也对其他关系数据库有效。
+* 有关 EF Core 上简化密钥集分页的扩展，请参阅[MR.EntityFrameworkCore.KeysetPagination](https://github.com/mrahhal/MR.EntityFrameworkCore.KeysetPagination) 和 [MR.AspNetCore.Pagination](https://github.com/mrahhal/MR.AspNetCore.Pagination).

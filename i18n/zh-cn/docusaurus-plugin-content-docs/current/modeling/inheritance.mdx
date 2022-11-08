@@ -1,0 +1,422 @@
+---
+sidebar_position: 3060
+title: 继承
+description: How to configure entity type inheritance using Entity Framework Core
+author: AndriySvyryd
+ms.date: 10/10/2022
+uid: core/modeling/inheritance
+---
+
+import InheritanceDbSets from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/InheritanceDbSets.cs';
+
+import FluentAPIDiscriminatorConfiguration from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/DiscriminatorConfiguration.cs';
+
+import FluentAPIDiscriminatorPropertyConfiguration from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/DiscriminatorPropertyConfiguration.cs';
+
+import FluentAPINonShadowDiscriminator from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/NonShadowDiscriminator.cs';
+
+import FluentAPITPTConfiguration from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/TPTConfiguration.cs';
+
+
+# 继承
+
+LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常一样使用基类型和派生类型在代码中编写 .NET 实体，并让 LEF 无缝创建适当的数据库架构、发出查询等。有关如何映射类型层次结构的实际细节取决于提供程序；本页介绍关系数据库上下文中的继承支持。
+
+## 实体类型层次结构映射
+
+按照约定，LEF 不会自动扫描基类型或派生类型；这意味着，如果要映射层次结构中的 CLR 类型，就必须在模型上显式指定该类型。 例如，仅指定层次结构的基类型不会导致 LEF Core 隐式包含其所有子类型。
+
+以下示例将为 `Blog` 及其子类 `RssBlog` 公开 `DbSet`。 如果 `Blog` 有任何其他子类，它不会包含在模型中。
+
+<CodeSnippets title="C#" language="csharp" fragment="InheritanceDbSets" metastring='{3-4}' showLineNumbers>{InheritanceDbSets}</CodeSnippets>
+
+> [!NOTE]
+使用 TPH 映射时，数据库列会根据需要自动设置为可为 null。 例如，RssUrl 列可为 null，因为常规 Blog 实例没有该属性。
+> 
+
+如果不想为层次结构中的一个或多个实体公开 `DbSet`，还可以使用 Fluent API 确保将它们包含在模型中。
+
+> [!TIP]
+如果不依赖约定，则可以使用 `HasBaseType` 显式指定基类型。 还可以使用 `.HasBaseType((Type)null)` 从层次结构中删除实体类型。
+> 
+
+## 每个层次结构一张表和鉴别器配置
+
+默认情况下，LEF 使用每个层次结构一张表 (TPH) 模式来映射继承。 TPH 使用单个表来存储层次结构中所有类型的数据，并使用鉴别器列来标识每行表示的类型。
+
+上面的模型映射到以下数据库架构（注意隐式创建的 `Discriminator` 列，它标识了每行中存储的 `Blog` 类型）。
+
+![Screenshot of the results of querying the Blog entity hierarchy using table-per-hierarchy pattern](/samples/img/inheritance-tph-data.png)
+
+可以配置鉴别器列的名称和类型以及用于标识层次结构中每种类型的值：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    TODO: 补齐代码
+    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="DiscriminatorConfiguration" metastring='{4-6}' showLineNumbers>{FluentAPIDiscriminatorConfiguration}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+在上面的示例中，EF 在层次结构的基本实体上隐式添加了鉴别器作为[影子属性](zh-cn/docs/modeling/shadow-properties)。 可以像配置任何其他属性一样配置此属性：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    TODO: 补齐代码
+    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="DiscriminatorPropertyConfiguration" metastring='{4-5}' showLineNumbers>{FluentAPIDiscriminatorPropertyConfiguration}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+
+最后，鉴别器也可以映射到实体中的常规 .NET 属性：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    TODO: 补齐代码
+    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="NonShadowDiscriminator" metastring='{4}' showLineNumbers>{FluentAPINonShadowDiscriminator}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+查询使用 TPH 模式的派生实体时，EF Core 会在查询中添加一个基于鉴别器列的谓词。 此筛选器确保对于结果中没有的基类型或同级类型，我们不会获得任何附加行。 对于基本实体类型，将跳过此筛选器谓词，因为查询基本实体将获得层次结构中所有实体的结果。 在具体化查询结果时，如果遇到未映射到模型中任何实体类型的鉴别器值，我们将引发异常，因为我们不知道如何具体化结果。 仅当数据库包含的行具有鉴别器值并且这些值未映射到 EF 模型时，才会发生此错误。 如果你有这样的数据，可以将 EF Core 模型中的鉴别器映射标记为不完整，以指示我们应始终添加筛选器谓词来查询层次结构中的任意类型。 IsComplete(false) 在鉴别器配置上调用会将映射标记为不完整。
+
+
+[!code-csharp[Main](../../../samples/core/Modeling/Inheritance/FluentAPI/DiscriminatorMappingIncomplete.cs?name=DiscriminatorMappingIncomplete&highlight=5)]
+
+### 共享列
+
+默认情况下，当层次结构中的两个同级实体类型具有同名的属性时，它们将映射到两个单独的列。 但是，如果它们的类型相同，则可以映射到相同的数据库列：
+
+[!code-csharp[Main](../../../samples/core/Modeling/Inheritance/FluentAPI/SharedTPHColumns.cs?name=SharedTPHColumns&highlight=9,13)]
+
+> [!NOTE]
+//TODO:解决这个问题存在
+使用强制转换查询共享列时，关系数据库提供程序（例如 SQL Server）不会自动使用鉴别器谓词。 查询 `Url = (blog as RssBlog).Url` 还将返回同级 `Blog` 行的 `Url` 值。 若要将查询限制为 `RssBlog` 实体，你需要在鉴别器上手动添加筛选器，例如 `Url = blog is RssBlog ? (blog as RssBlog).Url : null`。
+> 
+
+## 每个类型一张表配置
+
+> [!NOTE]
+ 开发中... The table-per-type (TPT) feature was introduced in EF Core 5.0.
+> 
+
+在 TPT 映射模式中，所有类型都分别映射到各自的表。 仅属于某个基类型或派生类型的属性存储在映射到该类型的一个表中。 映射到派生类型的表还会存储外键来联接派生表与基表。
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    TODO: 补齐代码
+    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="TPTConfiguration" showLineNumbers>{FluentAPITPTConfiguration}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+> [!TIP]
+无需在每个实体类型上调用 `ToTable`，当在根实体调用 `modelBuilder.Entity<Blog>().UseTptMappingStrategy()` 方法时，表名称将由 LEF 生成。
+> 
+
+EF 将为上述模型创建以下数据库架构。
+
+
+```sql
+CREATE TABLE [Blogs] (
+    [BlogId] int NOT NULL IDENTITY,
+    [Url] nvarchar(max) NULL,
+    CONSTRAINT [PK_Blogs] PRIMARY KEY ([BlogId])
+);
+
+CREATE TABLE [RssBlogs] (
+    [BlogId] int NOT NULL,
+    [RssUrl] nvarchar(max) NULL,
+    CONSTRAINT [PK_RssBlogs] PRIMARY KEY ([BlogId]),
+    CONSTRAINT [FK_RssBlogs_Blogs_BlogId] FOREIGN KEY ([BlogId]) REFERENCES [Blogs] ([BlogId]) ON DELETE NO ACTION
+);
+```
+
+> [!NOTE]
+如果重命名主键约束，新名称将应用于映射到层次结构的所有表。当问题 19970修复后，未来的 EF 版本将允许仅对特定表重命名约束。
+> 
+
+If you are employing bulk configuration you can retrieve the column name for a specific table by calling <xref:Microsoft.EntityFrameworkCore.RelationalPropertyExtensions.GetColumnName(Microsoft.EntityFrameworkCore.Metadata.IProperty,Microsoft.EntityFrameworkCore.Metadata.StoreObjectIdentifier@)>.
+
+[!code-csharp[Main](../../../samples/core/Modeling/Inheritance/FluentAPI/TPTConfiguration.cs?name=Metadata&highlight=10)]
+
+> [!WARNING]
+> In many cases, TPT shows inferior performance when compared to TPH. [See the performance docs for more information](xref:core/performance/modeling-for-performance#inheritance-mapping).
+
+> [!CAUTION]
+> Columns for a derived type are mapped to different tables, therefore composite FK constraints and indexes that use both the inherited and declared properties cannot be created in the database.
+
+## Table-per-concrete-type configuration
+
+> [!NOTE]
+> The table-per-concrete-type (TPC) feature was introduced in EF Core 7.0.
+
+In the TPC mapping pattern, all the types are mapped to individual tables. Each table contains columns for all properties on the corresponding entity type. This addresses some common performance issues with the TPT strategy.
+
+> [!TIP]
+> The EF Team demonstrated and talked in depth about TPC mapping in an episode of the [.NET Data Community Standup](https://aka.ms/efstandups). As with all Community Standup episodes, you can [watch the TPC episode now on YouTube](https://youtu.be/HaL6DKW1mrg).
+
+[!code-csharp[Main](../../../samples/core/Modeling/Inheritance/FluentAPI/TPCConfiguration.cs?name=TPCConfiguration)]
+
+> [!TIP]
+> Instead of calling `ToTable` on each entity type just calling `modelBuilder.Entity<Blog>().UseTpcMappingStrategy()` on each root entity type will generate the table names by convention.
+
+EF will create the following database schema for the model above.
+
+```sql
+CREATE TABLE [Blogs] (
+    [BlogId] int NOT NULL DEFAULT (NEXT VALUE FOR [BlogSequence]),
+    [Url] nvarchar(max) NULL,
+    CONSTRAINT [PK_Blogs] PRIMARY KEY ([BlogId])
+);
+
+CREATE TABLE [RssBlogs] (
+    [BlogId] int NOT NULL DEFAULT (NEXT VALUE FOR [BlogSequence]),
+    [Url] nvarchar(max) NULL,
+    [RssUrl] nvarchar(max) NULL,
+    CONSTRAINT [PK_RssBlogs] PRIMARY KEY ([BlogId])
+);
+```
+
+### TPC database schema
+
+The TPC strategy is similar to the TPT strategy except that a different table is created for every *concrete* type in the hierarchy, but tables are **not** created for *abstract* types - hence the name “table-per-concrete-type”. As with TPT, the table itself indicates the type of the object saved. However, unlike TPT mapping, each table contains columns for every property in the concrete type and its base types. TPC database schemas are denormalized.
+
+For example, consider mapping this hierarchy:
+
+<!--
+    public abstract class Animal
+    {
+        protected Animal(string name)
+        {
+            Name = name;
+        }
+
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public abstract string Species { get; }
+
+        public Food? Food { get; set; }
+    }
+
+    public abstract class Pet : Animal
+    {
+        protected Pet(string name)
+            : base(name)
+        {
+        }
+
+        public string? Vet { get; set; }
+
+        public ICollection<Human> Humans { get; } = new List<Human>();
+    }
+
+    public class FarmAnimal : Animal
+    {
+        public FarmAnimal(string name, string species)
+            : base(name)
+        {
+            Species = species;
+        }
+
+        public override string Species { get; }
+
+        [Precision(18, 2)]
+        public decimal Value { get; set; }
+
+        public override string ToString()
+            => $"Farm animal '{Name}' ({Species}/{Id}) worth {Value:C} eats {Food?.ToString() ?? "<Unknown>"}";
+    }
+
+    public class Cat : Pet
+    {
+        public Cat(string name, string educationLevel)
+            : base(name)
+        {
+            EducationLevel = educationLevel;
+        }
+
+        public string EducationLevel { get; set; }
+        public override string Species => "Felis catus";
+
+        public override string ToString()
+            => $"Cat '{Name}' ({Species}/{Id}) with education '{EducationLevel}' eats {Food?.ToString() ?? "<Unknown>"}";
+    }
+
+    public class Dog : Pet
+    {
+        public Dog(string name, string favoriteToy)
+            : base(name)
+        {
+            FavoriteToy = favoriteToy;
+        }
+
+        public string FavoriteToy { get; set; }
+        public override string Species => "Canis familiaris";
+
+        public override string ToString()
+            => $"Dog '{Name}' ({Species}/{Id}) with favorite toy '{FavoriteToy}' eats {Food?.ToString() ?? "<Unknown>"}";
+    }
+
+    public class Human : Animal
+    {
+        public Human(string name)
+            : base(name)
+        {
+        }
+
+        public override string Species => "Homo sapiens";
+
+        public Animal? FavoriteAnimal { get; set; }
+        public ICollection<Pet> Pets { get; } = new List<Pet>();
+
+        public override string ToString()
+            => $"Human '{Name}' ({Species}/{Id}) with favorite animal '{FavoriteAnimal?.Name ?? "<Unknown>"}'" +
+               $" eats {Food?.ToString() ?? "<Unknown>"}";
+    }
+-->
+[!code-csharp[AnimalsHierarchy](../../../samples/core/Miscellaneous/NewInEFCore7/TpcInheritanceSample.cs?name=AnimalsHierarchy)]
+
+When using SQL Server, the tables created for this hierarchy are:
+
+```sql
+CREATE TABLE [Cats] (
+    [Id] int NOT NULL DEFAULT (NEXT VALUE FOR [AnimalSequence]),
+    [Name] nvarchar(max) NOT NULL,
+    [FoodId] uniqueidentifier NULL,
+    [Vet] nvarchar(max) NULL,
+    [EducationLevel] nvarchar(max) NOT NULL,
+    CONSTRAINT [PK_Cats] PRIMARY KEY ([Id]));
+
+CREATE TABLE [Dogs] (
+    [Id] int NOT NULL DEFAULT (NEXT VALUE FOR [AnimalSequence]),
+    [Name] nvarchar(max) NOT NULL,
+    [FoodId] uniqueidentifier NULL,
+    [Vet] nvarchar(max) NULL,
+    [FavoriteToy] nvarchar(max) NOT NULL,
+    CONSTRAINT [PK_Dogs] PRIMARY KEY ([Id]));
+
+CREATE TABLE [FarmAnimals] (
+    [Id] int NOT NULL DEFAULT (NEXT VALUE FOR [AnimalSequence]),
+    [Name] nvarchar(max) NOT NULL,
+    [FoodId] uniqueidentifier NULL,
+    [Value] decimal(18,2) NOT NULL,
+    [Species] nvarchar(max) NOT NULL,
+    CONSTRAINT [PK_FarmAnimals] PRIMARY KEY ([Id]));
+
+CREATE TABLE [Humans] (
+    [Id] int NOT NULL DEFAULT (NEXT VALUE FOR [AnimalSequence]),
+    [Name] nvarchar(max) NOT NULL,
+    [FoodId] uniqueidentifier NULL,
+    [FavoriteAnimalId] int NULL,
+    CONSTRAINT [PK_Humans] PRIMARY KEY ([Id]));
+```
+
+Notice that:
+
+- There are no tables for the `Animal` or `Pet` types, since these are `abstract` in the object model. Remember that C# does not allow instances of abstract types, and there is therefore no situation where an abstract type instance will be saved to the database.
+- The mapping of properties in base types is repeated for each concrete type. For example, every table has a `Name` column, and both Cats and Dogs have a `Vet` column.
+
+- Saving some data into this database results in the following:
+
+**Cats table**
+
+| Id  | Name   | FoodId                               | Vet                  | EducationLevel |
+|:----|:-------|:-------------------------------------|:---------------------|:---------------|
+| 1   | Alice  | 99ca3e98-b26d-4a0c-d4ae-08da7aca624f | Pengelly             | MBA            |
+| 2   | Mac    | 99ca3e98-b26d-4a0c-d4ae-08da7aca624f | Pengelly             | Preschool      |
+| 8   | Baxter | 5dc5019e-6f72-454b-d4b0-08da7aca624f | Bothell Pet Hospital | BSc            |
+
+**Dogs table**
+
+| Id  | Name  | FoodId                               | Vet      | FavoriteToy  |
+|:----|:------|:-------------------------------------|:---------|:-------------|
+| 3   | Toast | 011aaf6f-d588-4fad-d4ac-08da7aca624f | Pengelly | Mr. Squirrel |
+
+**FarmAnimals table**
+
+| Id  | Name  | FoodId                               | Value  | Species                |
+|:----|:------|:-------------------------------------|:-------|:-----------------------|
+| 4   | Clyde | 1d495075-f527-4498-d4af-08da7aca624f | 100.00 | Equus africanus asinus |
+
+**Humans table**
+
+| Id  | Name   | FoodId                               | FavoriteAnimalId      |
+|:----|:-------|:-------------------------------------|:----------------------|
+| 5   | Wendy  | 5418fd81-7660-432f-d4b1-08da7aca624f | 2                     |
+| 6   | Arthur | 59b495d4-0414-46bf-d4ad-08da7aca624f | 1                     |
+| 9   | Katie  | null                                 | 8                     |
+
+Notice that unlike with TPT mapping, all the information for a single object is contained in a single table. And, unlike with TPH mapping, there is no combination of column and row in any table where that is never used by the model. We'll see below how these characteristics can be important for queries and storage.
+
+### Key generation
+
+The inheritance mapping strategy chosen has consequences for how primary key values are generated and managed. Keys in TPH are easy, since each entity instance is represented by a single row in a single table. Any kind of key value generation can be used, and no additional constraints are needed.
+
+For the TPT strategy, there is always a row in the table mapped to the base type of the hierarchy. Any kind of key generation can be used on this row, and the keys for other tables are linked to this table using foreign key constraints.
+
+Things get a bit more complicated for TPC. First, it’s important to understand that EF Core requires that all entities in a hierarchy have a unique key value, even if the entities have different types. For example, using our example model, a Dog cannot have the same Id key value as a Cat. Second, unlike TPT, there is no common table that can act as the single place where key values live and can be generated. This means a simple `Identity` column cannot be used.
+
+For databases that support sequences, key values can be generated by using a single sequence referenced in the default constraint for each table. This is the strategy used in the TPC tables shown above, where each table has the following:
+
+```sql
+[Id] int NOT NULL DEFAULT (NEXT VALUE FOR [AnimalSequence])
+```
+
+`AnimalSequence` is a database sequence created by EF Core. This strategy is used by default for TPC hierarchies when using the EF Core database provider for SQL Server. Database providers for other databases that support sequences should have a similar default. Other key generation strategies that use sequences, such as Hi-Lo patterns, may also be used with TPC.
+
+While standard Identity columns don't work with TPC, it is possible to use Identity columns if each table is configured with an appropriate seed and increment such that the values generated for each table will never conflict. For example:
+
+<!--
+            modelBuilder.Entity<Cat>().ToTable("Cats", tb => tb.Property(e => e.Id).UseIdentityColumn(1, 4));
+            modelBuilder.Entity<Dog>().ToTable("Dogs", tb => tb.Property(e => e.Id).UseIdentityColumn(2, 4));
+            modelBuilder.Entity<FarmAnimal>().ToTable("FarmAnimals", tb => tb.Property(e => e.Id).UseIdentityColumn(3, 4));
+            modelBuilder.Entity<Human>().ToTable("Humans", tb => tb.Property(e => e.Id).UseIdentityColumn(4, 4));
+-->
+[!code-csharp[UsingIdentity](../../../samples/core/Miscellaneous/NewInEFCore7/TpcInheritanceSample.cs?name=UsingIdentity)]
+
+> [!IMPORTANT]
+> Using this strategy makes it harder to add derived types later as it requires the total number of types in the hierarchy to be known beforehand.
+
+SQLite does not support sequences or Identity seed/increment, and hence integer key value generation is not supported when using SQLite with the TPC strategy. However, client-side generation or globally unique keys - such as GUIDs - are supported on any database, including SQLite.
+
+### Foreign key constraints
+
+The TPC mapping strategy creates a denormalized SQL schema - this is one reason why some database purists are against it. For example, consider the foreign key column `FavoriteAnimalId`. The value in this column must match the primary key value of some animal. This can be enforced in the database with a simple FK constraint when using TPH or TPT. For example:
+
+```sql
+CONSTRAINT [FK_Animals_Animals_FavoriteAnimalId] FOREIGN KEY ([FavoriteAnimalId]) REFERENCES [Animals] ([Id])
+```
+
+But when using TPC, the primary key for any given animal is stored in the table corresponding to the concrete type of that animal. For example, a cat's primary key is stored in the `Cats.Id` column, while a dog's primary key is stored in the `Dogs.Id` column, and so on. This means an FK constraint cannot be created for this relationship.
+
+In practice, this is not a problem as long as the application does not attempt to insert invalid data. For example, if all the data is inserted by EF Core and uses navigations to relate entities, then it is guaranteed that the FK column will contain valid PK values at all times.
+
+## Summary and guidance
+
+In summary, TPH is usually fine for most applications, and is a good default for a wide range of scenarios, so don't add the complexity of TPC if you don't need it. Specifically, if your code will mostly query for entities of many types, such as writing queries against the base type, then lean towards TPH over TPC.
+
+That being said, TPC is also a good mapping strategy to use when your code will mostly query for entities of a single leaf type and your benchmarks show an improvement compared with TPH.
+
+Use TPT only if constrained to do so by external factors.

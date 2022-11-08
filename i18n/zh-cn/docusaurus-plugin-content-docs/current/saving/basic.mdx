@@ -1,0 +1,54 @@
+---
+sidebar_position: 5010
+title: 基本保存
+description: Basic information on adding, updating and removing data with Entity Framework Core
+author: ajcvickers
+ms.date: 10/27/2016
+uid: core/saving/basic
+---
+
+import BasicsSample from '!!raw-loader!../../../../../static/samples/Saving/Basics/Sample.cs';
+
+# 基本保存
+
+了解如何使用上下文和实体类添加、修改和删除数据。
+
+> [!TIP]
+可在 GitHub 上查看此文章的 [示例](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Saving/Basics/)。
+> 
+
+## 添加数据
+
+使用 `DbSet.Add` 方法添加实体类的新实例。 调用 `SaveChanges` 时，数据将插入到数据库中。
+
+<CodeSnippets title="C#" language="csharp" fragment="Add" showLineNumbers>{BasicsSample}</CodeSnippets>
+
+> [!TIP]
+添加、附加和更新方法全部呈现在传递给这些方法的实体的完整关系图上，如相关数据部分中所述。 此外，还可以使用 EntityEntry.State 属性仅设置单个实体的状态。 例如，`context.Entry(blog).State = EntityState.Modified`。
+> 
+
+## 更新数据
+
+EF 将自动检测对由上下文跟踪的现有实体所做的更改。 这包括从数据库加载/查询的实体，以及之前添加并保存到数据库的实体。
+
+只需修改分配给属性的值，然后调用 `SaveChanges`。
+
+<CodeSnippets title="C#" language="csharp" fragment="Update" showLineNumbers>{BasicsSample}</CodeSnippets>
+
+## 删除数据
+
+使用 `DbSet.Remove` 方法删除实体类的实例。
+
+如果实体已存在于数据库中，则将在 `“SaveChanges”` 期间删除该实体。 如果实体尚未保存到数据库（即跟踪为“已添加”），则在调用 `“SaveChanges”` 时，该实体会从上下文中删除且不再插入。
+
+<CodeSnippets title="C#" language="csharp" fragment="Remove" showLineNumbers>{BasicsSample}</CodeSnippets>
+
+## 单个 SaveChanges 中的多个操作
+
+可以将多个添加/更新/删除操作合并到对 `“SaveChanges”` 的单个调用。
+
+> [!NOTE]
+对于大多数数据库提供程序，`“SaveChanges”` 是事务性的。 这意味着所有操作将一起成功或一起失败，绝不会部分的应用这些操作。
+> 
+
+<CodeSnippets title="C#" language="csharp" fragment="MultipleOperations" showLineNumbers>{BasicsSample}</CodeSnippets>

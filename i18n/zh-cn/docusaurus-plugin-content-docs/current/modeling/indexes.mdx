@@ -1,0 +1,222 @@
+---
+sidebar_position: 3050
+title: 索引
+description: 使用 Linq Entity Framework 配置实体索引
+author: roji
+ms.date: 10/1/2021
+uid: core/modeling/indexes
+---
+
+import DataAnnotationsIndex from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/DataAnnotations/Index.cs';
+import FluentAPIIndex from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/Index.cs';
+
+import DataAnnotationsIndexComposite from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/DataAnnotations/IndexComposite.cs';
+import FluentAPIIndexComposite from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexComposite.cs';
+
+import DataAnnotationsIndexUnique from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/DataAnnotations/IndexUnique.cs';
+import FluentAPIIndexUnique from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexUnique.cs';
+
+import DataAnnotationsIndexDescending from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/DataAnnotations/IndexDescending.cs';
+import FluentAPIIndexDescending from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexDescending.cs';
+
+import DataAnnotationsIndexName from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/DataAnnotations/IndexName.cs';
+import FluentAPIIndexName from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexName.cs';
+
+import FluentAPIIndexFilter from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexFilter.cs';
+import FluentAPIIndexNoFilter from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexNoFilter.cs';
+import FluentAPIIndexInclude from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexInclude.cs';
+
+
+
+
+# 索引
+
+索引是许多数据存储中的常见概念。 尽管它们在数据存储中的实现可能会有所不同，但它们可用于使基于列（或一组列）的查找更加高效。 有关良好索引使用的详细信息，请参阅性能文档中的[索引部分](zh-cn/docs/performance/efficient-querying#use-indexes-properly)。
+
+可对列指定索引，如下所示：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="Index" metastring='{1}' showLineNumbers>{DataAnnotationsIndex}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="Index" metastring='{4}' showLineNumbers>{FluentAPIIndex}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+***
+
+> [!NOTE]
+
+根据约定，会在用作外键的每个属性（或属性集）中创建索引。
+
+EF Core 每个不同的属性集仅支持一个索引。 如果在一组已定义索引的属性上配置索引，无论是根据约定还是以前的配置，都需要更改该索引的定义。 如果要进一步配置按约定创建的索引，则此操作非常有用。
+
+> 
+
+## 复合索引
+
+索引还可以跨多个列：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="Composite" metastring='{1}' showLineNumbers>{DataAnnotationsIndexComposite}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="Composite" metastring='{4}' showLineNumbers>{FluentAPIIndexComposite}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+
+***
+
+多个列上的索引（也称为复合索引），可以加快对索引列进行筛选的查询速度，还可以加快仅对索引覆盖的第一列进行筛选的查询速度。 有关详细信息，请参阅[性能文档](zh-cn/docs/performance/efficient-querying#use-indexes-properly) for more information.
+
+## 索引唯一性
+
+默认情况下，索引不唯一：对于索引的列集，允许多行具有相同的值。 可使索引唯一，如下所示：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="IndexUnique" metastring='{1}' showLineNumbers>{DataAnnotationsIndexUnique}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="IndexUnique" metastring='{5}' showLineNumbers>{FluentAPIIndexUnique}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+***
+
+尝试为索引的列集插入多个具有相同值的实体将导致引发异常。
+
+## 索引排序顺序
+
+在大多数数据库中，索引涵盖的每个列可以是升序或降序。 对于仅涵盖一列的索引，这通常无关紧要：数据库可以根据需要按相反顺序遍历索引。 但是，对于复合索引，排序对于良好的性能至关重要，并且可以表示查询是否使用索引之间的差异。 通常，索引列的排序顺序应对应于查询的 `ORDER BY` 子句中指定的排序顺序。
+
+索引排序顺序默认为升序。 可以按如下所示使所有列按降序排列：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="IndexDescending" metastring='{1}' showLineNumbers>{DataAnnotationsIndexDescending}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="IndexDescending" metastring='{5}' showLineNumbers>{FluentAPIIndexDescending}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+***
+
+还可以按列指定排序顺序，如下所示：
+
+### [Data Annotations](#tab/data-annotations)
+
+[!code-csharp[Main](../../../samples/core/Modeling/IndexesAndConstraints/DataAnnotations/IndexDescendingAscending.cs?name=IndexDescendingAscending&highlight=1)]
+
+### [Fluent API](#tab/fluent-api)
+
+[!code-csharp[Main](../../../samples/core/Modeling/IndexesAndConstraints/FluentAPI/IndexDescendingAscending.cs?name=IndexDescendingAscending&highlight=5)]
+
+***
+
+## 索引名称
+
+根据约定，在关系数据库中创建的索引被命名为 `IX_<type name>_<property name>`。 对于复合索引， `<property name>` 将成为以下划线分隔的属性名称列表。
+
+可设置在数据库中创建的索引的名称：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{5}' showLineNumbers>{FluentAPIIndexName}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+
+***
+
+## 索引筛选器
+
+
+通过某些关系数据库，可指定筛选索引或部分索引。 这使你可以仅索引列值的子集，从而减少索引的大小并改善性能和磁盘空间的使用情况。 有关 SQL Server 筛选索引的详细信息，请[参阅文档](https://learn.microsoft.com/zh-cn/sql/relational-databases/indexes/create-filtered-indexes)。
+
+可使用 Fluent API 在索引上指定筛选器（以 SQL 表达式的形式提供）：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    TODO: 补齐代码
+    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="IndexFilter" metastring='{5}' showLineNumbers>{FluentAPIIndexFilter}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+
+使用 SQL Server 提供程序时，EF 为作为唯一索引一部分的所有可为 null 列添加 `'IS NOT NULL'` 筛选器。 若要替代此约定，可提供一个 null 值。
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    TODO: 补齐代码
+    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="IndexNoFilter" metastring='{6}' showLineNumbers>{FluentAPIIndexNoFilter}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+
+## 包含列
+
+通过某些关系数据库，可配置一组列，这些列包含在索引中，但不是其“键”的一部分。 当查询中的所有列都作为键列或非键列包含在索引中时，这可以显著提高查询性能，因为无需访问表本身。 有关 SQL Server 包含的列的详细信息，请 [参阅文档](https://learn.microsoft.com/zh-cn/sql/relational-databases/indexes/create-indexes-with-included-columns)。
+
+在以下示例中，`Url` 列是索引键的一部分，因此对该列的任何查询筛选都可以使用索引。 但除此之外，仅访问 `Title` 和 `PublishedOn` 列的查询将不需要访问表，并且会更高效地运行：
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    TODO: 补齐代码
+    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="IndexInclude" metastring='{5,6}' showLineNumbers>{FluentAPIIndexInclude}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+## 检查约束
+
+检查约束是一项标准关系功能，让你可以定义一个条件，该条件必须适用于表中的所有行；任何违反约束的插入或修改数据的尝试都将失败。 检查约束类似于非 null 约束（禁止列中的空值）或唯一约束（禁止重复），但允许定义任意 SQL 表达式。
+
+可使用 Fluent API 指定表的检查约束（以 SQL 表达式的形式提供）：
+
+[!code-csharp[Main](../../../samples/core/Modeling/IndexesAndConstraints/FluentAPI/CheckConstraint.cs?name=CheckConstraint&highlight=4)]
+
+可在同一个表上定义多个检查约束，每个约束都有自己的名称。
+
+> [!TIP]
+一些常见的检查约束可通过社区包 [EFCore.CheckConstraints](https://github.com/efcore/EFCore.CheckConstraints)进行配置。
+> 
