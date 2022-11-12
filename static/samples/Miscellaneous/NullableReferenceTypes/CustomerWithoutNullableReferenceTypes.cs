@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Hunter.EntityFramework;
+using System.ComponentModel.DataAnnotations;
 
 #nullable disable
 
@@ -9,7 +10,7 @@ namespace NullableReferenceTypes
     {
         public int Id { get; set; }
 
-        [Required] // Data annotations needed to configure as required
+        [DbRequired] // Data annotations needed to configure as required
         public string FirstName { get; set; }
 
         [Required]

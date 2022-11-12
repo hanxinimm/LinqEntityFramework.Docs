@@ -1,19 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EFModeling.EntityProperties.DataAnnotations.ColumnName;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
 }
 
-#region ColumnName
+#region AliasName
 public class Blog
 {
-    [Column("blog_id")]
+    [DbAlias("blog_id")]
     public int BlogId { get; set; }
 
+    [Column("blog_url")]
     public string Url { get; set; }
 }
 #endregion

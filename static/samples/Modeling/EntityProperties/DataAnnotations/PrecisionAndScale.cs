@@ -1,9 +1,9 @@
+using Hunter.EntityFramework;
 using System;
-using Microsoft.EntityFrameworkCore;
 
 namespace EFModeling.EntityProperties.DataAnnotations.PrecisionAndScale;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
 }
@@ -12,9 +12,9 @@ internal class MyContext : DbContext
 public class Blog
 {
     public int BlogId { get; set; }
-    [Precision(14, 2)]
+    [DbPrecision(14, 2)]
     public decimal Score { get; set; }
-    [Precision(3)]
+    [DbPrecision(3)]
     public DateTime LastUpdated { get; set; }
 }
 #endregion

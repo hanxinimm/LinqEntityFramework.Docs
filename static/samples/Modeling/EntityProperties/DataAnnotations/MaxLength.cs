@@ -1,9 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
+using System.ComponentModel.DataAnnotations;
 
 namespace EFModeling.EntityProperties.DataAnnotations.MaxLength;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
 }
@@ -13,7 +13,7 @@ public class Blog
 {
     public int BlogId { get; set; }
 
-    [MaxLength(500)]
+    [DbMaxLength(500)]
     public string Url { get; set; }
 }
 #endregion

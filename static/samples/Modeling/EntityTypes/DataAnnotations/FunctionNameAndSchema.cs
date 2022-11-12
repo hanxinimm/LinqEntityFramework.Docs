@@ -5,11 +5,11 @@ namespace EFModeling.EntityTypes.DataAnnotations.FunctionNameAndSchema;
 
 internal partial class MyContext : LinqDbContext
 {
-    protected DbFunction<Blog> BlogsWithMultiplePosts { get; set; }
+    [DbFunction(nameof(BlogsWithMultiplePosts))]
+    protected DbView<BlogWithMultiplePosts> BlogsWithMultiplePosts() => default;
 }
 
-[DbFunction("BlogsWithMultiplePosts")]
-public class Blog
+public class BlogWithMultiplePosts
 {
     public int BlogId { get; set; }
     public string Url { get; set; }

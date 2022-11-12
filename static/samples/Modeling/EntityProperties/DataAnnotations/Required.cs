@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+using Hunter.EntityFramework;
 
 namespace EFModeling.EntityProperties.DataAnnotations.Required;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
 }
@@ -13,6 +13,7 @@ public class Blog
 {
     public int BlogId { get; set; }
 
+    [DbRequired]
     [Required]
     public string Url { get; set; }
 }

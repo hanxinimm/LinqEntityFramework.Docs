@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
+using Microsoft.EntityFrameworkCore;
 
 namespace NullableReferenceTypes
 {
     #region Context
-    public class NullableReferenceTypesContext : DbContext
+    public class NullableReferenceTypesContext : LinqDbContext
     {
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Order> Orders => Set<Order>();

@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Hunter.EntityFramework;
 
 namespace EFModeling.EntityProperties.DataAnnotations.Annotations;
@@ -14,6 +12,6 @@ public class Blog
 {
     public int BlogId { get; set; }
 
-    [Required]
+    [DbRequired]
     public string Url { get; set; }
 }

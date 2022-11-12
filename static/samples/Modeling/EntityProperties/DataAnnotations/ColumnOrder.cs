@@ -1,9 +1,8 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+using Hunter.EntityFramework;
 
 namespace EFModeling.EntityProperties.DataAnnotations.ColumnOrder;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Employee> Employees { get; set; }
 }
@@ -11,16 +10,13 @@ internal class MyContext : DbContext
 #region snippet_ColumnAttribute
 public class EntityBase
 {
-    [Column(Order = 0)]
     public int Id { get; set; }
 }
 
 public class PersonBase : EntityBase
 {
-    [Column(Order = 1)]
     public string FirstName { get; set; }
 
-    [Column(Order = 2)]
     public string LastName { get; set; }
 }
 

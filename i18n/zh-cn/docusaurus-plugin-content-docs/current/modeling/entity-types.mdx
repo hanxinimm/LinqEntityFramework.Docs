@@ -31,6 +31,7 @@ import FluentAPIViewNameAndSchema from '!!raw-loader!../../../../../static/sampl
 
 import DataAnnotationsFunctionNameAndSchema from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/DataAnnotations/FunctionNameAndSchema.cs';
 
+import DataAnnotationsFunctionNameAndSchemaContainsParameters from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/DataAnnotations/FunctionNameAndSchemaContainsParameters.cs';
 
 
 
@@ -162,7 +163,7 @@ RETURN
 
 <Tabs groupId="operating-code">
   <TabItem value="Annotations" label="数据注解">
-    <CodeBlock title="C#" language="csharp" metastring='{7,10}' showLineNumbers>{DataAnnotationsFunctionNameAndSchema}</CodeBlock>
+    <CodeBlock title="C#" language="csharp" metastring='{8,9}' showLineNumbers>{DataAnnotationsFunctionNameAndSchema}</CodeBlock>
   </TabItem>
   <TabItem
     value="Fluent"
@@ -172,9 +173,20 @@ RETURN
   </TabItem>
 </Tabs>
 
-> [!NOTE]
-In order to map an entity to a table-valued function the function must be parameterless.
-> 
+映射一个包含参数的表值函数
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeBlock title="C#" language="csharp" metastring='{8,9}' showLineNumbers>{DataAnnotationsFunctionNameAndSchemaContainsParameters}</CodeBlock>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="QueryableFunctionConfigurationToFunction" showLineNumbers>{EntityTypes}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
 通常情况下，实体属性将映射到 TVF 返回的匹配列。 如果 TVF 返回的列名称与实体属性的名称不同，则可以使用 HasColumnName 方法配置实体的列，就像映射到常规表一样。
 
 当实体类型映射到表值函数时，查询：
