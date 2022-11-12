@@ -1,15 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+using Hunter.EntityFramework;
 
 namespace EFModeling.EntityProperties.DataAnnotations.Annotations;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
+    public DbEntity<Blog> Blogs { get; set; }
 }
 
-[Table("Blogs")]
+[DbEntity("Blogs")]
 public class Blog
 {
     public int BlogId { get; set; }

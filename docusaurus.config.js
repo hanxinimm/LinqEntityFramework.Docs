@@ -8,7 +8,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title: 'Linq Entity Framework For C#',
   tagline: 'simple, yet powerful ORM for modeling and insert/update/querying data.',
-  url: 'https://em-ide.com',
+  url: 'https://linqef.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -114,7 +114,7 @@ const config = {
               },
               {
                 label: 'EIDE Forum',
-                href: 'https://discuss.em-ide.com',
+                href: 'https://discuss.linqef.com',
               }
             ],
           },
@@ -123,15 +123,11 @@ const config = {
             items: [
               {
                 label: 'Linq Entity Framework',
-                href: 'https://github.com/github0null/eide',
-              },
-              {
-                label: 'SourceForge',
-                href: 'https://em-ide.sourceforge.io/'
+                href: 'https://github.com/hanxinimm/LinqEntityFramework',
               },
               {
                 label: 'Legacy Docs',
-                href: 'https://em-ide.com/legacy-docs',
+                href: 'https://linqef.com/legacy-docs',
               },
             ],
           },
@@ -149,13 +145,13 @@ const config = {
 
         apiKey: 'dd4a6214e345cc730aacb7c634a16cba',
 
-        indexName: 'em-ide',
+        indexName: 'LINQ EF',
   
         // 可选：见下文
         contextualSearch: true,
   
         // 可选：声明哪些域名需要用 window.location 型的导航而不是 history.push。 适用于 Algolia 配置会爬取多个文档站点，而我们想要用 window.location.href 在它们之间跳转时。
-        externalUrlRegex: 'em-ide\\.com',
+        externalUrlRegex: 'linqef\\.com',
   
         // 可选：Algolia 搜索参数
         searchParameters: {},

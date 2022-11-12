@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
+using System.Collections.Generic;
 
 namespace EFModeling.EntityTypes;
 
 #region EntityTypes
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
+    public DbEntity<Blog> Blogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,7 +47,7 @@ public class BlogWithMultiplePosts
 }
 #endregion
 
-public class MyContextWithFunctionMapping : DbContext
+public class MyContextWithFunctionMapping : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
     public DbSet<Post> Posts { get; set; }

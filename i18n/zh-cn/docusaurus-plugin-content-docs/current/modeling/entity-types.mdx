@@ -16,25 +16,35 @@ import FluentAPITableName from '!!raw-loader!../../../../../static/samples/Model
 import DataAnnotationsTableNameAndSchema from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/DataAnnotations/TableNameAndSchema.cs';
 import FluentAPITableNameAndSchema from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/FluentAPI/TableNameAndSchema.cs';
 
+import DataAnnotationsDefaultSchema from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/DataAnnotations/DefaultSchema.cs';
+import FluentAPIDefaultSchema from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/FluentAPI/DefaultSchema.cs';
+
+
 import EntityTypesProgram from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/Program.cs';
 
 import DataAnnotationsTableComment from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/DataAnnotations/TableComment.cs';
 import FluentAPITableComment from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/FluentAPI/TableComment.cs';
 
 
+import DataAnnotationsViewNameAndSchema from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/DataAnnotations/ViewNameAndSchema.cs';
+import FluentAPIViewNameAndSchema from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/FluentAPI/ViewNameAndSchema.cs';
+
+import DataAnnotationsFunctionNameAndSchema from '!!raw-loader!../../../../../static/samples/Modeling/EntityTypes/DataAnnotations/FunctionNameAndSchema.cs';
+
+
 
 
 # 实体类型
 
-在上下文中包含一种类型的 DbSet 意味着它包含在 EF Core 的模型中；我们通常将此类类型称为实体。 EF Core 可以从/向数据库中读取和写入实体实例，如果使用的是关系数据库，EF Core 可以通过迁移为实体创建表。
+在上下文中包含一种类型的 DbEntity 意味着它包含在 Linq EF 的模型中；我们通常将此类类型称为实体。 Linq EF 可以从/向数据库中读取和写入实体实例，如果使用的是关系数据库，Linq EF 可以通过迁移为实体创建表。
 
 ## 在模型中包含类型
 
-按照约定，上下文的 DbSet 属性中公开的类型作为实体包含在模型中。 还包括在 OnModelCreating 方法中指定的实体类型，以及通过递归探索其他发现的实体类型的导航属性找到的任何类型
+按照约定，上下文的 DbEntity 属性中公开的类型作为实体包含在模型中，以及通过递归探索其他发现的实体类型的导航属性找到的任何类型
 
 下面的代码示例中包含了所有类型：
 
-- 包含 `Blog`，因为它在上下文的 DbSet 属性中公开。
+- 包含 `Blog`，因为它在上下文的 DbEntity 属性中公开。
 - 包含 `Post`，因为它是通过 Blog.Posts 导航属性发现的。
 
 <!-- [!code-csharp[Main](../../../samples/core/Modeling/EntityTypes/EntityTypes.cs?name=EntityTypes&highlight=3,7,16)] -->
@@ -49,7 +59,7 @@ import FluentAPITableComment from '!!raw-loader!../../../../../static/samples/Mo
 
 <Tabs groupId="operating-code">
   <TabItem value="Annotations" label="数据注解">
-    <CodeSnippets title="C#" language="csharp" fragment="TableName" metastring='{1}' showLineNumbers>{DataAnnotationsTableName}</CodeSnippets>
+    <CodeSnippets title="C#" language="csharp" fragment="TableName" metastring='{1,2}' showLineNumbers>{DataAnnotationsTableName}</CodeSnippets>
   </TabItem>
   <TabItem
     value="Fluent"
@@ -83,24 +93,47 @@ import FluentAPITableComment from '!!raw-loader!../../../../../static/samples/Mo
 
 还可以在模型级别使用 Fluent API 定义默认架构，而不是为每个表指定架构：
 
-[!code-csharp[Main](../../../samples/core/Modeling/EntityTypes/FluentAPI/DefaultSchema.cs?name=DefaultSchema&highlight=3)]
+
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeBlock title="C#" language="csharp" metastring='{7,10}' showLineNumbers>{DataAnnotationsDefaultSchema}</CodeBlock>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="DefaultSchema" metastring='{3}' showLineNumbers>{FluentAPIDefaultSchema}</CodeSnippets>
+  </TabItem>
+</Tabs>
 
 请注意，设置默认架构也会影响其他数据库对象，例如序列。
 
 ## 视图映射
 
-实体类型 can be mapped to database views using the Fluent API.
+实体类型 你可以通过使用数据注解或者 Fluent API 来映射视图.
 
-> [!Note]
- EF will assume that the referenced view already exists in the database, it will not create it automatically in a migration.
-> 
+> [!NOTE]
+  EF 假定数据库中已存在引用的视图，它不会在迁移中自动创建它。
+>  
 
-[!code-csharp[Main](../../../samples/core/Modeling/EntityTypes/FluentAPI/ViewNameAndSchema.cs?name=ViewNameAndSchema&highlight=1)]
 
-Mapping to a view will remove the default table mapping, but starting with EF 5.0 the entity type can also be mapped to a table explicitly. In this case the query mapping will be used for queries and the table mapping will be used for updates.
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeBlock title="C#" language="csharp" metastring='{7,10}' showLineNumbers>{DataAnnotationsViewNameAndSchema}</CodeBlock>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="ViewNameAndSchema" metastring='{3}' showLineNumbers>{FluentAPIViewNameAndSchema}</CodeSnippets>
+  </TabItem>
+</Tabs>
+
+映射到视图将删除默认表映射，但从 EF 5.0 开始，实体类型也可以显式映射到表。 在这种情况下，查询映射将用于查询，表映射将用于更新。
 
 > [!TIP]
-To test keyless 实体类型 mapped to views using the in-memory provider, map them to a query via <xref:Microsoft.EntityFrameworkCore.InMemoryEntityTypeBuilderExtensions.ToInMemoryQuery%2A>. See the [in-memory provider docs](xref:core/testing/testing-without-the-database#in-memory-provider) for more information.
+//TODO:修正描述，查看当前操作意义
+若要使用内存中提供程序测试映射到视图的无键实体类型，请通过 ToInMemoryQuery该提供程序将它们映射到查询。 有关详细信息，请参阅 内存中提供程序文档 。
 > 
 
 ## 表值函数映射
@@ -108,7 +141,6 @@ To test keyless 实体类型 mapped to views using the in-memory provider, map t
 可以将实体类型映射到表值函数 (TVF) 而不是数据库中的表。 为了说明这一点，我们定义另一个实体来表示具有多个帖子的博客。 在示例中，实体是无键的，但它不必是无键实体。
 
 <CodeSnippets title="C#" language="csharp" fragment="BlogWithMultiplePostsEntity" showLineNumbers>{EntityTypes}</CodeSnippets>
-
 
 接下来，在数据库中创建以下表值函数，该函数仅返回包含多个帖子的博客以及与其中每个博客关联的帖子数：
 
@@ -126,9 +158,19 @@ RETURN
 )
 ```
 
-Now, the entity `BlogWithMultiplePosts` can be mapped to this function in a following way:
+现在，可以通过以下方式将实体 `BlogWithMultiplePosts` 映射到此函数：
 
-[!code-csharp[Main](../../../samples/core/Modeling/EntityTypes/EntityTypes.cs#QueryableFunctionConfigurationToFunction)]
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeBlock title="C#" language="csharp" metastring='{7,10}' showLineNumbers>{DataAnnotationsFunctionNameAndSchema}</CodeBlock>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="QueryableFunctionConfigurationToFunction" showLineNumbers>{EntityTypes}</CodeSnippets>
+  </TabItem>
+</Tabs>
 
 > [!NOTE]
 In order to map an entity to a table-valued function the function must be parameterless.

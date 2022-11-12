@@ -10,7 +10,7 @@ uid: 核心/入门/概述/安装
 
 ## 先决条件
 
-* Linq Entity Framework 是一个 [.NET Standard 2.1]（/dotnet/standard/net-standard）/[NET 5.0]/[NET 6.0] 库。因此，Linq Entity Framework 需要支持 .NET Standard 2.0 的 .NET 实现才能运行。Linq Entity Framework 也可以由其他 .NET 标准 2.0 库引用。
+* Linq Entity Framework 是一个 [.NET Standard 2.1](https://learn.microsoft.com/zh-cn/dotnet/standard/net-standard)/[NET 5.0/NET 6.0](https://learn.microsoft.com/zh-cn/dotnet/core/introduction) 库。因此，Linq Entity Framework 需要支持 .NET Standard 2.0 的 .NET 实现才能运行。Linq Entity Framework 也可以由其他 .NET 标准 2.0 库引用。
 
 * 例如，可以使用 Linq Entity Framework 开发面向 .NET Core 的应用。构建 .NET Core 应用程序需要 [.NET Core SDK]（https://dotnet.microsoft.com/download）。或者，您也可以使用开发环境，如 [Visual Studio]（https://visualstudio.microsoft.com/vs）、[Visual Studio for Mac]（https://visualstudio.microsoft.com/vs/mac） 或 [Visual Studio Code]（https://code.visualstudio.com）。有关详细信息，请查看 [.NET Core 入门]（/dotnet/core/get-started）。
 
@@ -104,8 +104,10 @@ uid: 核心/入门/概述/安装
 dotnet 添加包 Microsoft.EntityFrameworkCore.Design
   ```
 
->[！重要提示]
->始终使用与运行时包的主要版本匹配的工具包版本。
+> [!INFO]
+始终使用与运行时包的主要版本匹配的工具包版本。
+> 
+
 ### 获取包管理器控制台工具
 
 若要获取 Linq Entity Framework 的程序包管理器控制台工具，请安装“Microsoft.EntityFrameworkCore.Tools”程序包。例如，从Visual Studio：

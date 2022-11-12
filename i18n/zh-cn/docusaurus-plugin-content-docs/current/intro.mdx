@@ -1,14 +1,21 @@
 ---
+sidebar_position: 1
 title: 概述
-description: Linq 实体框架的一般介绍性概述
+description: Linq Entity Framework 的一般介绍性概述
 author: 韩鑫
 ms.date: 9/20/2020
 uid: intro
 ---
 
+import IntroModel from '!!raw-loader!../../../../static/samples/Intro/Model.cs';
+
+import IntroProgram from '!!raw-loader!../../../../static/samples/Intro/Program.cs';
+
+
+
 # Linq Entity Framework
 
-Linq Framework (LEF) 是轻量化、可扩展、[开源](https://github.com/hanxinimm/LinqEntityFramework)和跨平台版的常用 Entity Framework 数据访问技术。
+LINQ Framework (LEF) 是轻量化、可扩展、[开源](https://github.com/hanxinimm/LinqEntityFramework)和跨平台版的常用 Entity Framework 数据访问技术。
 
 
 Linq Entity Framework 可用作对象关系映射程序 (O/RM)，这可以实现以下两点：
@@ -21,34 +28,27 @@ Linq Entity Framework 支持多个数据库引擎，请参阅[数据库提供程
 
 ## 模型
 
-使用 Linq Entity Framework 时，数据访问是使用模型 Linq 语义表达式的。模型由实体类和表示与数据库的会话的上下文对象组成。上下文对象允许查询和保存数据。更多信息请参阅[创建模型](/zh-cn/modeling/)。
+使用 Linq Entity Framework 时，数据访问是使用模型 Linq 语义表达式的。模型由实体类和表示与数据库的会话的上下文对象组成。上下文对象允许查询和保存数据。更多信息请参阅[创建模型](/zh-cn/docs/modeling/)。
 
-EF 支持以下模型开发方法：
+LINQ EF 支持以下模型开发方法：
 
 * 从现有数据库生成模型。
 * 手动编写模型以匹配数据库。
-* 创建模型后，使用 [EF Migrations]（xref：core/managing-schemas/migrations/index） 从模型创建数据库。迁移允许随着模型的变化而发展数据库。
+* 创建模型后，使用 [LINQ EF 迁移](/docs/managing-schemas/migrations/) 从模型创建数据库。迁移允许随着模型的变化而发展数据库。
 
-<!-- [！code-csharp[Main]（../../samples/核心/简介/模型.cs）] -->
-[](../../samples/Intro/Model.cs ':include :type=code')
+<CodeBlock title="C#" language="csharp" showLineNumbers>{IntroModel}</CodeBlock>
 
 ## 查询
 
-使用[语言集成查询 (LINQ)](https://learn.microsoft.com/zh-cn/dotnet/csharp/programming-guide/concepts/linq/) 从数据库检索实体类的实例。 有关详细信息，请参阅查询数据。
+使用实体类的查询语法[Lambda表达式](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/operators/lambda-expressions) 从数据库检索实体类的实例。 有关详细信息，请参阅查询数据。
 
-
-
-<!-- [！code-csharp[Main]()../samples/Intro/Program.cs#Querying）] -->
-[](../../samples/Intro/Program.cs ':include :type=code :fragment=Querying')
-
+<CodeSnippets title="C#" language="csharp" fragment="Querying" showLineNumbers>{IntroProgram}</CodeSnippets>
 
 ## 保存数据
 
-使用实体类的实例在数据库中创建、删除和修改数据。请参阅 [保存数据]（外部参照：核心/保存/索引）以了解更多信息。
+使用实体类的的修改语法[Lambda表达式](https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/operators/lambda-expressions) 从数据库中创建、删除和修改数据。请参阅 [保存数据]（外部参照：核心/保存/索引）以了解更多信息。
 
-<!-- [！code-csharp[Main]（../../samples/Intro/Program.cs#SavingData）] -->
-[](../../samples/Intro/Program.cs ':include :type=code :fragment=SavingData')
-
+<CodeSnippets title="C#" language="csharp" fragment="SavingData" showLineNumbers>{IntroProgram}</CodeSnippets>
 
 ## EF O/RM 注意事项
 

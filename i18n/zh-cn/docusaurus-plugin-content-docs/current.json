@@ -35,6 +35,30 @@
     "message": "在 VSCode 上开始你的第一个单片机项目",
     "description": "The generated-index page description for category Getting Started in sidebar tutorialSidebar"
   },
+  "sidebar.tutorialSidebar.category.Managing Schemas": {
+    "message": "管理架构",
+    "description": "The label for category Getting Started in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Managing Schemas.link.generated-index.description": {
+    "message": "在 VSCode 上开始你的第一个单片机项目",
+    "description": "The generated-index page description for category Getting Started in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Managing Schemas Migrations": {
+    "message": "架构迁移",
+    "description": "The label for category Getting Started in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Managing Schemas Migrations.link.generated-index.description": {
+    "message": "在 VSCode 上开始你的第一个单片机项目",
+    "description": "The generated-index page description for category Getting Started in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Managing Schemas Scaffolding": {
+    "message": "反向工程",
+    "description": "The label for category Getting Started in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Managing Schemas Scaffolding.link.generated-index.description": {
+    "message": "在 VSCode 上开始你的第一个单片机项目",
+    "description": "The generated-index page description for category Getting Started in sidebar tutorialSidebar"
+  },
   "sidebar.tutorialSidebar.category.Function Modules": {
     "message": "功能模块",
     "description": "The label for category Function Modules in sidebar tutorialSidebar"

@@ -21,7 +21,7 @@
   },
   "link.item.label.EIDE Forum": {
     "message": "EIDE 论坛",
-    "description": "The label of footer link with label=EIDE Forum linking to https://discuss.em-ide.com"
+    "description": "The label of footer link with label=EIDE Forum linking to https://discuss.linqef.com"
   },
   "link.item.label.Embedded IDE": {
     "message": "Embedded IDE",
@@ -29,7 +29,7 @@
   },
   "link.item.label.Legacy Docs": {
     "message": "旧版文档",
-    "description": "The label of footer link with label=Obsolete Docs linking to https://em-ide.com/docs/eide-manual"
+    "description": "The label of footer link with label=Obsolete Docs linking to https://linqef.com/docs/eide-manual"
   },
   "copyright": {
     "message": "Copyright © 2022 github0null.io",

@@ -1,18 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EFModeling.EntityTypes.DataAnnotations.TableName;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
+    public DbEntity<Blog> Blogs { get; set; }
 }
 
 #region TableName
-[Table("blogs")]
+[DbEntity("blogs")] // Recommended writing
+[Table("blogs")] // Compatible writing
 public class Blog
 {
     public int BlogId { get; set; }
     public string Url { get; set; }
 }
+
 #endregion

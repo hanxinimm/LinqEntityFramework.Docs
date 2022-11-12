@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
 
 namespace EFModeling.EntityTypes.FluentAPI.ViewNameAndSchema;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
 
