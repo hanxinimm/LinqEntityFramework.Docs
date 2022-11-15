@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
 
 namespace EFModeling.Inheritance.FluentAPI.DiscriminatorConfiguration;
 
-public class MyContext : DbContext
+public class MyContext : LinqDbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
+    public DbEntity<Blog> Blogs { get; set; }
 
     #region DiscriminatorConfiguration
     protected override void OnModelCreating(ModelBuilder modelBuilder)

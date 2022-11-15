@@ -1,18 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
 
 namespace EFModeling.IndexesAndConstraints.DataAnnotations.IndexComposite;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Person> People { get; set; }
 }
 
 #region Composite
-[Index(nameof(FirstName), nameof(LastName))]
 public class Person
 {
     public int PersonId { get; set; }
+
+    [DbIndex(nameof(FirstName))]
     public string FirstName { get; set; }
+
+    [DbIndex(nameof(LastName))]
     public string LastName { get; set; }
 }
 #endregion

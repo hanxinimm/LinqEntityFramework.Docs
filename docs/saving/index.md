@@ -1,6 +1,6 @@
 ---
 title: Saving Data - EF Core
-description: Overview of saving data with Entity Framework Core
+description: Overview of saving data with Linq Entity Framework
 author: ajcvickers
 ms.date: 10/27/2016
 uid: core/saving/index

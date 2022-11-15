@@ -1,19 +1,21 @@
 ﻿using Hunter.EntityFramework;
 
-namespace EFModeling.IndexesAndConstraints.DataAnnotations.IndexUnique;
+namespace EFModeling.Keys.DataAnnotations.KeyName;
 
 internal class MyContext : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
 }
 
-#region IndexUnique
+#region KeyName
+
 public class Blog
 {
+
+    [DbKey("PrimaryKey_BlogId")]
     public int BlogId { get; set; }
-
-    [DbIndex(nameof(Url), IsUnique = true)]
-
     public string Url { get; set; }
+
 }
+
 #endregion

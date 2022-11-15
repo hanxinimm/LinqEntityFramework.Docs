@@ -1,6 +1,6 @@
 ---
 title: Migrations Overview - EF Core
-description: Overview of using migrations to manage database schemas with Entity Framework Core
+description: Overview of using migrations to manage database schemas with Linq Entity Framework
 author: bricelam
 ms.date: 10/28/2020
 uid: core/managing-schemas/migrations/index
@@ -147,6 +147,6 @@ The above was only a brief introduction to migrations. Please consult the other 
 
 ## Additional resources
 
-* [Entity Framework Core tools reference - .NET Core CLI](xref:core/cli/dotnet) : Includes commands to update, drop, add, remove, and  more.
-* [Entity Framework Core tools reference - Package Manager Console in Visual Studio](xref:core/cli/powershell) : Includes commands to update, drop, add, remove, and  more.
+* [Linq Entity Framework tools reference - .NET Core CLI](xref:core/cli/dotnet) : Includes commands to update, drop, add, remove, and  more.
+* [Linq Entity Framework tools reference - Package Manager Console in Visual Studio](xref:core/cli/powershell) : Includes commands to update, drop, add, remove, and  more.
 * [.NET Data Community Standup session](https://www.youtube.com/watch?v=mSsGERmrhnE&list=PLdo4fOcmZ0oX-DBuRG4u58ZTAJgBAeQ-t&index=20) going over new migration features in EF Core 5.0.

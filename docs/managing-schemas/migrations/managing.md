@@ -1,6 +1,6 @@
 ---
 title: Managing Migrations - EF Core
-description: Adding, removing and otherwise managing database schema migrations with Entity Framework Core
+description: Adding, removing and otherwise managing database schema migrations with Linq Entity Framework
 author: bricelam
 ms.date: 10/27/2020
 uid: core/managing-schemas/migrations/managing
@@ -226,5 +226,5 @@ It's also possible to reset all migrations and create a single one without losin
 
 ## Additional resources
 
-* [Entity Framework Core tools reference - .NET Core CLI](xref:core/cli/dotnet) : Includes commands to update, drop, add, remove, and  more.
-* [Entity Framework Core tools reference - Package Manager Console in Visual Studio](xref:core/cli/powershell) : Includes commands to update, drop, add, remove, and  more.
+* [Linq Entity Framework tools reference - .NET Core CLI](xref:core/cli/dotnet) : Includes commands to update, drop, add, remove, and  more.
+* [Linq Entity Framework tools reference - Package Manager Console in Visual Studio](xref:core/cli/powershell) : Includes commands to update, drop, add, remove, and  more.

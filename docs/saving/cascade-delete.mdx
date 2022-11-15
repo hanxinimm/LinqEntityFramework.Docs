@@ -7,7 +7,7 @@ uid: core/saving/cascade-delete
 ---
 # Cascade Delete
 
-Entity Framework Core (EF Core) represents relationships using foreign keys. An entity with a foreign key is the child or dependent entity in the relationship. This entity's foreign key value must match the primary key value (or an alternate key value) of the related principal/parent entity.
+Linq Entity Framework (EF Core) represents relationships using foreign keys. An entity with a foreign key is the child or dependent entity in the relationship. This entity's foreign key value must match the primary key value (or an alternate key value) of the related principal/parent entity.
 
 If the principal/parent entity is deleted, then the foreign key values of the dependents/children will no longer match the primary or alternate key of _any_ principal/parent. This is an invalid state, and will cause a referential constraint violation in most databases.
 

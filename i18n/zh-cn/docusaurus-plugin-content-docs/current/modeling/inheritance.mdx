@@ -1,40 +1,47 @@
 ---
 sidebar_position: 3060
 title: 继承
-description: How to configure entity type inheritance using Entity Framework Core
+description: How to configure entity type inheritance using Linq Entity Framework
 author: AndriySvyryd
 ms.date: 10/10/2022
 uid: core/modeling/inheritance
 ---
 
-import InheritanceDbSets from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/InheritanceDbSets.cs';
+import InheritanceDbEntitys from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/InheritanceDbEntitys.cs';
 
+import DataAnnotationsDiscriminatorConfiguration from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/DataAnnotations/DiscriminatorConfiguration.cs';
 import FluentAPIDiscriminatorConfiguration from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/DiscriminatorConfiguration.cs';
 
+import DataAnnotationsDiscriminatorPropertyConfiguration from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/DataAnnotations/DiscriminatorPropertyConfiguration.cs';
 import FluentAPIDiscriminatorPropertyConfiguration from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/DiscriminatorPropertyConfiguration.cs';
 
+import DataAnnotationsNonShadowDiscriminator from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/DataAnnotations/NonShadowDiscriminator.cs';
 import FluentAPINonShadowDiscriminator from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/NonShadowDiscriminator.cs';
+
+
+import FluentAPIDiscriminatorMappingIncomplete from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/DiscriminatorMappingIncomplete.cs';
+
 
 import FluentAPITPTConfiguration from '!!raw-loader!../../../../../static/samples/Modeling/Inheritance/FluentAPI/TPTConfiguration.cs';
 
 
 # 继承
 
-LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常一样使用基类型和派生类型在代码中编写 .NET 实体，并让 LEF 无缝创建适当的数据库架构、发出查询等。有关如何映射类型层次结构的实际细节取决于提供程序；本页介绍关系数据库上下文中的继承支持。
+Linq EF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常一样使用基类型和派生类型在代码中编写 .NET 实体，并让 Linq EF 轻松创建适当的数据库架构、生成查询等。有关如何映射类型层次结构的实际细节取决于提供程序；本页介绍关系数据库上下文中的继承支持。
 
 ## 实体类型层次结构映射
 
-按照约定，LEF 不会自动扫描基类型或派生类型；这意味着，如果要映射层次结构中的 CLR 类型，就必须在模型上显式指定该类型。 例如，仅指定层次结构的基类型不会导致 LEF Core 隐式包含其所有子类型。
+按照约定，Linq EF 不会自动扫描基类型或派生类型；这意味着，如果要映射层次结构中的 CLR 类型，就必须在模型上显式指定该类型。 例如，仅指定层次结构的基类型不会导致 Linq EF 隐式包含其所有子类型。
 
-以下示例将为 `Blog` 及其子类 `RssBlog` 公开 `DbSet`。 如果 `Blog` 有任何其他子类，它不会包含在模型中。
+以下示例将为 `Blog` 及其子类 `RssBlog` 公开 `DbEntity`。 如果 `Blog` 有任何其他子类，它不会包含在模型中。
 
-<CodeSnippets title="C#" language="csharp" fragment="InheritanceDbSets" metastring='{3-4}' showLineNumbers>{InheritanceDbSets}</CodeSnippets>
+<CodeSnippets title="C#" language="csharp" fragment="InheritanceDbEntitys" metastring='{3-4}' showLineNumbers>{InheritanceDbEntitys}</CodeSnippets>
 
 > [!NOTE]
 使用 TPH 映射时，数据库列会根据需要自动设置为可为 null。 例如，RssUrl 列可为 null，因为常规 Blog 实例没有该属性。
 > 
 
-如果不想为层次结构中的一个或多个实体公开 `DbSet`，还可以使用 Fluent API 确保将它们包含在模型中。
+如果不想为层次结构中的一个或多个实体公开 `DbEntity`，还可以使用 Fluent API 确保将它们包含在模型中。
 
 > [!TIP]
 如果不依赖约定，则可以使用 `HasBaseType` 显式指定基类型。 还可以使用 `.HasBaseType((Type)null)` 从层次结构中删除实体类型。
@@ -42,7 +49,7 @@ LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常
 
 ## 每个层次结构一张表和鉴别器配置
 
-默认情况下，LEF 使用每个层次结构一张表 (TPH) 模式来映射继承。 TPH 使用单个表来存储层次结构中所有类型的数据，并使用鉴别器列来标识每行表示的类型。
+默认情况下，Linq EF 使用每个层次结构一张表 (TPH) 模式来映射继承。 TPH 使用单个表来存储层次结构中所有类型的数据，并使用鉴别器列来标识每行表示的类型。
 
 上面的模型映射到以下数据库架构（注意隐式创建的 `Discriminator` 列，它标识了每行中存储的 `Blog` 类型）。
 
@@ -52,8 +59,7 @@ LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常
 
 <Tabs groupId="operating-code">
   <TabItem value="Annotations" label="数据注解">
-    TODO: 补齐代码
-    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+    <CodeSnippets title="C#" language="csharp" fragment="DiscriminatorConfiguration" metastring='{6}' showLineNumbers>{DataAnnotationsDiscriminatorConfiguration}</CodeSnippets>
   </TabItem>
   <TabItem
     value="Fluent"
@@ -63,12 +69,11 @@ LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常
   </TabItem>
 </Tabs>
 
-在上面的示例中，EF 在层次结构的基本实体上隐式添加了鉴别器作为[影子属性](zh-cn/docs/modeling/shadow-properties)。 可以像配置任何其他属性一样配置此属性：
+在上面的示例中，EF 在层次结构的基本实体上隐式添加了鉴别器作为[影子属性](shadow-properties)。 可以像配置任何其他属性一样配置此属性：
 
 <Tabs groupId="operating-code">
   <TabItem value="Annotations" label="数据注解">
-    TODO: 补齐代码
-    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+    <CodeSnippets title="C#" language="csharp" fragment="DiscriminatorPropertyConfiguration" metastring='{6,7}' showLineNumbers>{DataAnnotationsDiscriminatorPropertyConfiguration}</CodeSnippets>
   </TabItem>
   <TabItem
     value="Fluent"
@@ -84,7 +89,7 @@ LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常
 <Tabs groupId="operating-code">
   <TabItem value="Annotations" label="数据注解">
     TODO: 补齐代码
-    {/* <CodeSnippets title="C#" language="csharp" fragment="IndexName" metastring='{1}' showLineNumbers>{DataAnnotationsIndexName}</CodeSnippets> */}
+    <CodeSnippets title="C#" language="csharp" fragment="NonShadowDiscriminator" metastring='{1}' showLineNumbers>{DataAnnotationsNonShadowDiscriminator}</CodeSnippets>
   </TabItem>
   <TabItem
     value="Fluent"
@@ -94,10 +99,21 @@ LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常
   </TabItem>
 </Tabs>
 
-查询使用 TPH 模式的派生实体时，EF Core 会在查询中添加一个基于鉴别器列的谓词。 此筛选器确保对于结果中没有的基类型或同级类型，我们不会获得任何附加行。 对于基本实体类型，将跳过此筛选器谓词，因为查询基本实体将获得层次结构中所有实体的结果。 在具体化查询结果时，如果遇到未映射到模型中任何实体类型的鉴别器值，我们将引发异常，因为我们不知道如何具体化结果。 仅当数据库包含的行具有鉴别器值并且这些值未映射到 EF 模型时，才会发生此错误。 如果你有这样的数据，可以将 EF Core 模型中的鉴别器映射标记为不完整，以指示我们应始终添加筛选器谓词来查询层次结构中的任意类型。 IsComplete(false) 在鉴别器配置上调用会将映射标记为不完整。
+查询使用 TPH 模式的派生实体时，Linq EF 会在查询中添加一个基于鉴别器列的谓词。 此筛选器确保对于结果中没有的基类型或同级类型，我们不会获得任何附加行。 对于基本实体类型，将跳过此筛选器谓词，因为查询基本实体将获得层次结构中所有实体的结果。 在具体化查询结果时，如果遇到未映射到模型中任何实体类型的鉴别器值，我们将引发异常，因为我们不知道如何具体化结果。 仅当数据库包含的行具有鉴别器值并且这些值未映射到 EF 模型时，才会发生此错误。 如果你有这样的数据，可以将 Linq EF 模型中的鉴别器映射标记为不完整，以指示我们应始终添加筛选器谓词来查询层次结构中的任意类型。 IsComplete(false) 在鉴别器配置上调用会将映射标记为不完整。
 
 
-[!code-csharp[Main](../../../samples/core/Modeling/Inheritance/FluentAPI/DiscriminatorMappingIncomplete.cs?name=DiscriminatorMappingIncomplete&highlight=5)]
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    TODO: 补齐代码
+    <CodeSnippets title="C#" language="csharp" fragment="NonShadowDiscriminator" metastring='{1}' showLineNumbers>{DataAnnotationsNonShadowDiscriminator}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="DiscriminatorMappingIncomplete" metastring='{4}' showLineNumbers>{FluentAPIDiscriminatorMappingIncomplete}</CodeSnippets>
+  </TabItem>
+</Tabs>
 
 ### 共享列
 
@@ -113,7 +129,7 @@ LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常
 ## 每个类型一张表配置
 
 > [!NOTE]
- 开发中... The table-per-type (TPT) feature was introduced in EF Core 5.0.
+ 开发中... The table-per-type (TPT) feature was introduced in Linq EF 5.0.
 > 
 
 在 TPT 映射模式中，所有类型都分别映射到各自的表。 仅属于某个基类型或派生类型的属性存储在映射到该类型的一个表中。 映射到派生类型的表还会存储外键来联接派生表与基表。
@@ -132,7 +148,7 @@ LEF 可以将 .NET 类型层次结构映射到数据库。 这允许你像往常
 </Tabs>
 
 > [!TIP]
-无需在每个实体类型上调用 `ToTable`，当在根实体调用 `modelBuilder.Entity<Blog>().UseTptMappingStrategy()` 方法时，表名称将由 LEF 生成。
+无需在每个实体类型上调用 `ToTable`，当在根实体调用 `modelBuilder.Entity<Blog>().UseTptMappingStrategy()` 方法时，表名称将由 Linq EF 生成。
 > 
 
 EF 将为上述模型创建以下数据库架构。
@@ -170,7 +186,7 @@ If you are employing bulk configuration you can retrieve the column name for a s
 ## Table-per-concrete-type configuration
 
 > [!NOTE]
-> The table-per-concrete-type (TPC) feature was introduced in EF Core 7.0.
+> The table-per-concrete-type (TPC) feature was introduced in Linq EF 7.0.
 
 In the TPC mapping pattern, all the types are mapped to individual tables. Each table contains columns for all properties on the corresponding entity type. This addresses some common performance issues with the TPT strategy.
 
@@ -376,7 +392,7 @@ The inheritance mapping strategy chosen has consequences for how primary key val
 
 For the TPT strategy, there is always a row in the table mapped to the base type of the hierarchy. Any kind of key generation can be used on this row, and the keys for other tables are linked to this table using foreign key constraints.
 
-Things get a bit more complicated for TPC. First, it’s important to understand that EF Core requires that all entities in a hierarchy have a unique key value, even if the entities have different types. For example, using our example model, a Dog cannot have the same Id key value as a Cat. Second, unlike TPT, there is no common table that can act as the single place where key values live and can be generated. This means a simple `Identity` column cannot be used.
+Things get a bit more complicated for TPC. First, it’s important to understand that Linq EF requires that all entities in a hierarchy have a unique key value, even if the entities have different types. For example, using our example model, a Dog cannot have the same Id key value as a Cat. Second, unlike TPT, there is no common table that can act as the single place where key values live and can be generated. This means a simple `Identity` column cannot be used.
 
 For databases that support sequences, key values can be generated by using a single sequence referenced in the default constraint for each table. This is the strategy used in the TPC tables shown above, where each table has the following:
 
@@ -384,7 +400,7 @@ For databases that support sequences, key values can be generated by using a sin
 [Id] int NOT NULL DEFAULT (NEXT VALUE FOR [AnimalSequence])
 ```
 
-`AnimalSequence` is a database sequence created by EF Core. This strategy is used by default for TPC hierarchies when using the EF Core database provider for SQL Server. Database providers for other databases that support sequences should have a similar default. Other key generation strategies that use sequences, such as Hi-Lo patterns, may also be used with TPC.
+`AnimalSequence` is a database sequence created by Linq EF. This strategy is used by default for TPC hierarchies when using the Linq EF database provider for SQL Server. Database providers for other databases that support sequences should have a similar default. Other key generation strategies that use sequences, such as Hi-Lo patterns, may also be used with TPC.
 
 While standard Identity columns don't work with TPC, it is possible to use Identity columns if each table is configured with an appropriate seed and increment such that the values generated for each table will never conflict. For example:
 
@@ -411,7 +427,7 @@ CONSTRAINT [FK_Animals_Animals_FavoriteAnimalId] FOREIGN KEY ([FavoriteAnimalId]
 
 But when using TPC, the primary key for any given animal is stored in the table corresponding to the concrete type of that animal. For example, a cat's primary key is stored in the `Cats.Id` column, while a dog's primary key is stored in the `Dogs.Id` column, and so on. This means an FK constraint cannot be created for this relationship.
 
-In practice, this is not a problem as long as the application does not attempt to insert invalid data. For example, if all the data is inserted by EF Core and uses navigations to relate entities, then it is guaranteed that the FK column will contain valid PK values at all times.
+In practice, this is not a problem as long as the application does not attempt to insert invalid data. For example, if all the data is inserted by Linq EF and uses navigations to relate entities, then it is guaranteed that the FK column will contain valid PK values at all times.
 
 ## Summary and guidance
 

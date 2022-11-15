@@ -1,6 +1,6 @@
 ---
 title: Custom Reverse Engineering Templates - EF Core
-description: Using T4 text templates to customize the scaffolded code when reverse engineering an Entity Framework Core model from a database
+description: Using T4 text templates to customize the scaffolded code when reverse engineering an Linq Entity Framework model from a database
 author: bricelam
 ms.date: 08/16/2022
 uid: core/managing-schemas/scaffolding/templates
@@ -10,7 +10,7 @@ uid: core/managing-schemas/scaffolding/templates
 > [!NOTE]
 > This feature was added in EF Core 7.
 
-While [reverse engineering](xref:core/managing-schemas/scaffolding), Entity Framework Core strives to scaffold good, general-purpose code that can be used in a variety of app types and uses [common coding conventions](/dotnet/csharp/fundamentals/coding-style/coding-conventions) for a consistent look and a familiar feel. Sometimes, however, more specialized code and alternative coding styles are desirable. This article shows how to customize the scaffolded code using [T4 text templates](/visualstudio/modeling/code-generation-and-t4-text-templates).
+While [reverse engineering](xref:core/managing-schemas/scaffolding), Linq Entity Framework strives to scaffold good, general-purpose code that can be used in a variety of app types and uses [common coding conventions](/dotnet/csharp/fundamentals/coding-style/coding-conventions) for a consistent look and a familiar feel. Sometimes, however, more specialized code and alternative coding styles are desirable. This article shows how to customize the scaffolded code using [T4 text templates](/visualstudio/modeling/code-generation-and-t4-text-templates).
 
 ## Prerequisites
 

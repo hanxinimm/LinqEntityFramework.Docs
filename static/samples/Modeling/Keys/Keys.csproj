@@ -11,4 +11,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0-rc.2.22472.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Joker-Hunter-EntityFramework\SqlServer\Hunter.EntityFramework.SqlServer.csproj" />
+  </ItemGroup>
+
 </Project>

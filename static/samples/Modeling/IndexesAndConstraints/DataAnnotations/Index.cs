@@ -1,17 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
 
 namespace EFModeling.IndexesAndConstraints.DataAnnotations.Index;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
 }
 
 #region Index
-[Index(nameof(Url))]
+
 public class Blog
 {
     public int BlogId { get; set; }
+
+    [DbIndex(nameof(Url))]
     public string Url { get; set; }
 }
 #endregion

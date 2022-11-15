@@ -1,6 +1,6 @@
 ---
 title: Transactions - EF Core
-description: Managing transactions for atomicity when saving data with Entity Framework Core
+description: Managing transactions for atomicity when saving data with Linq Entity Framework
 author: roji
 ms.date: 9/26/2020
 uid: core/saving/transactions
@@ -91,7 +91,7 @@ You can now create multiple context instances that share the same connection. Th
 
 If you are using multiple data access technologies to access a relational database, you may want to share a transaction between operations performed by these different technologies.
 
-The following example, shows how to perform an ADO.NET SqlClient operation and an Entity Framework Core operation in the same transaction.
+The following example, shows how to perform an ADO.NET SqlClient operation and an Linq Entity Framework operation in the same transaction.
 
 [!code-csharp[Main](../../../samples/core/Saving/Transactions/ExternalDbTransaction.cs?name=Transaction&highlight=4,9,20,25-27)]
 

@@ -1,9 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
+using System.ComponentModel.DataAnnotations;
 
-namespace EFModeling.Keys.DataAnnotations.KeySingle;
+namespace EFModeling.Keys.DataAnnotations.KeyComposite;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Car> Cars { get; set; }
 }
@@ -11,10 +11,10 @@ internal class MyContext : DbContext
 #region KeyComposite
 internal class Car
 {
-    [Key]
+    [DbKey]
     public string LicensePlate { get; set; }
 
-    [Key]
+    [DbKey]
     public string Make { get; set; }
     public string Model { get; set; }
 }

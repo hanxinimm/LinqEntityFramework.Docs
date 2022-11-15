@@ -1,6 +1,6 @@
 ---
 title: Reverse Engineering - EF Core
-description: Reverse engineering a model from an existing database using Entity Framework Core
+description: Reverse engineering a model from an existing database using Linq Entity Framework
 author: bricelam
 ms.date: 11/13/2018
 uid: core/managing-schemas/scaffolding

@@ -19,6 +19,9 @@ import FluentAPIIndexUnique from '!!raw-loader!../../../../../static/samples/Mod
 import DataAnnotationsIndexDescending from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/DataAnnotations/IndexDescending.cs';
 import FluentAPIIndexDescending from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexDescending.cs';
 
+import DataAnnotationsIndexDescendingAscending from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/DataAnnotations/IndexDescendingAscending.cs';
+import FluentAPIIndexDescendingAscending from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexDescendingAscending.cs';
+
 import DataAnnotationsIndexName from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/DataAnnotations/IndexName.cs';
 import FluentAPIIndexName from '!!raw-loader!../../../../../static/samples/Modeling/IndexesAndConstraints/FluentAPI/IndexName.cs';
 
@@ -53,7 +56,7 @@ import FluentAPIIndexInclude from '!!raw-loader!../../../../../static/samples/Mo
 
 根据约定，会在用作外键的每个属性（或属性集）中创建索引。
 
-EF Core 每个不同的属性集仅支持一个索引。 如果在一组已定义索引的属性上配置索引，无论是根据约定还是以前的配置，都需要更改该索引的定义。 如果要进一步配置按约定创建的索引，则此操作非常有用。
+Linq EF 每个不同的属性集仅支持一个索引。 如果在一组已定义索引的属性上配置索引，无论是根据约定还是以前的配置，都需要更改该索引的定义。 如果要进一步配置按约定创建的索引，则此操作非常有用。
 
 > 
 
@@ -76,7 +79,7 @@ EF Core 每个不同的属性集仅支持一个索引。 如果在一组已定�
 
 ***
 
-多个列上的索引（也称为复合索引），可以加快对索引列进行筛选的查询速度，还可以加快仅对索引覆盖的第一列进行筛选的查询速度。 有关详细信息，请参阅[性能文档](zh-cn/docs/performance/efficient-querying#use-indexes-properly) for more information.
+多个列上的索引（也称为复合索引），可以加快对索引列进行筛选的查询速度，还可以加快仅对索引覆盖的第一列进行筛选的查询速度。 有关详细信息，请参阅[性能文档](zh-cn/docs/performance/efficient-querying#use-indexes-properly).
 
 ## 索引唯一性
 
@@ -120,13 +123,17 @@ EF Core 每个不同的属性集仅支持一个索引。 如果在一组已定�
 
 还可以按列指定排序顺序，如下所示：
 
-### [Data Annotations](#tab/data-annotations)
-
-[!code-csharp[Main](../../../samples/core/Modeling/IndexesAndConstraints/DataAnnotations/IndexDescendingAscending.cs?name=IndexDescendingAscending&highlight=1)]
-
-### [Fluent API](#tab/fluent-api)
-
-[!code-csharp[Main](../../../samples/core/Modeling/IndexesAndConstraints/FluentAPI/IndexDescendingAscending.cs?name=IndexDescendingAscending&highlight=5)]
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="IndexDescendingAscending" metastring='{1}' showLineNumbers>{DataAnnotationsIndexDescendingAscending}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="IndexDescendingAscending" metastring='{5}' showLineNumbers>{FluentAPIIndexDescendingAscending}</CodeSnippets>
+  </TabItem>
+</Tabs>
 
 ***
 

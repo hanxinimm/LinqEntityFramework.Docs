@@ -1,6 +1,6 @@
 ---
 title: Custom Migrations History Table - EF Core
-description: Customizing a history table to use for migrations with Entity Framework Core
+description: Customizing a history table to use for migrations with Linq Entity Framework
 author: bricelam
 ms.date: 11/07/2017
 uid: core/managing-schemas/migrations/history-table

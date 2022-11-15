@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+using Hunter.EntityFramework;
 
 namespace EFModeling.Keys.DataAnnotations.KeySingle;
 
-internal class MyContext : DbContext
+internal class MyContext : LinqDbContext
 {
     public DbSet<Car> Cars { get; set; }
 }
@@ -12,6 +12,7 @@ internal class MyContext : DbContext
 internal class Car
 {
     [Key]
+    [DbKey]
     public string LicensePlate { get; set; }
 
     public string Make { get; set; }

@@ -1,6 +1,6 @@
 ---
 title: Applying Migrations - EF Core
-description: Strategies for applying schema migrations to production and development databases using Entity Framework Core
+description: Strategies for applying schema migrations to production and development databases using Linq Entity Framework
 author: bricelam
 ms.date: 11/02/2021
 uid: core/managing-schemas/migrations/applying

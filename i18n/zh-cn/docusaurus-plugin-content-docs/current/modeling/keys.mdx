@@ -15,9 +15,14 @@ import FluentAPIKeySingle from '!!raw-loader!../../../../../static/samples/Model
 import DataAnnotationsKeyComposite from '!!raw-loader!../../../../../static/samples/Modeling/Keys/DataAnnotations/KeyComposite.cs';
 import FluentAPIKeyComposite from '!!raw-loader!../../../../../static/samples/Modeling/Keys/FluentAPI/KeyComposite.cs';
 
+
+import DataAnnotationsKeyName from '!!raw-loader!../../../../../static/samples/Modeling/Keys/DataAnnotations/KeyName.cs';
+import FluentAPIKeyName from '!!raw-loader!../../../../../static/samples/Modeling/Keys/FluentAPI/KeyName.cs';
+
+
 # 键
 
-键用作每个实体实例的唯一标识符。 EF 中的大多数实体都有一个键，该键映射到关系数据库中主键的概念（对于没有键的实体，请参阅 [无键实体](zh-cn/docs/modeling/keyless-entity-types)）。 实体可以有除主键之外的其他键（有关详细信息，请参阅[备选键](#alternate-keys)）.
+键用作每个实体实例的唯一标识符。 EF 中的大多数实体都有一个键，该键映射到关系数据库中主键的概念（对于没有键的实体，请忽略该文章）。 实体可以有除主键之外的其他键（有关详细信息，请参阅[备选键](#alternate-keys)）.
 
 ## 配置主键
 
@@ -62,17 +67,27 @@ import FluentAPIKeyComposite from '!!raw-loader!../../../../../static/samples/Mo
 
 ## 值生成
 
-对于非复合数字和 GUID 主键，EF Core 根据约定设置值生成。 例如，SQL Server 中的数字主键会自动设置为 IDENTITY 列。 有关更多信息，请参阅[有关值生成的文档](zh-cn/docs/modeling/inheritance#key-generation).
+对于非复合数字和 GUID 主键，Linq EF 根据约定设置值生成。 例如，SQL Server 中的数字主键会自动设置为 IDENTITY 列。 有关更多信息，请参阅[有关值生成的文档](zh-cn/docs/modeling/inheritance#key-generation).
 
 ## 主键名称
 
 根据约定，在关系数据库上，主键使用名称 `PK_<type name>` 进行创建。 可按如下方式配置主键约束的名称：
 
-[!code-csharp[Main](../../../samples/core/Modeling/Keys/FluentAPI/KeyName.cs?name=KeyName&highlight=5)]
+<Tabs groupId="operating-code">
+  <TabItem value="Annotations" label="数据注解">
+    <CodeSnippets title="C#" language="csharp" fragment="KeyName" metastring='{4}' showLineNumbers>{DataAnnotationsKeyName}</CodeSnippets>
+  </TabItem>
+  <TabItem
+    value="Fluent"
+    label="Fluent API"
+  >
+    <CodeSnippets title="C#" language="csharp" fragment="KeyName" metastring='{5}' showLineNumbers>{FluentAPIKeyName}</CodeSnippets>
+  </TabItem>
+</Tabs>
 
 ## 键类型和值
 
-虽然 EF Core 支持使用任何基元类型的属性作为主键（包括 `string`、`Guid`、`byte[]` 等），但并非所有数据库都支持所有类型作为键。 在某些情况下，键值可以自动转换为支持的类型，否则应[手动指定](zh-cn/docs/modeling/value-conversions)转换。
+虽然 Linq EF 支持使用任何基元类型的属性作为主键（包括 `string`、`Guid`、`byte[]` 等），但并非所有数据库都支持所有类型作为键。 在某些情况下，键值可以自动转换为支持的类型，否则应[手动指定](zh-cn/docs/modeling/value-conversions)转换。
 
 向上下文添加新实体时，键属性必须始终具有非默认值，但某些类型将[由数据库生成](zh-cn/docs/modeling/generated-properties)。 在这种情况下，代码将直接生成默认值。
 

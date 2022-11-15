@@ -1,7 +1,7 @@
 ---
 sidebar_position: 4100
 title: 查询工作原理
-description: General information on how Entity Framework Core internally compiles and executes queries
+description: General information on how Linq Entity Framework internally compiles and executes queries
 author: ajcvickers
 ms.date: 03/17/2020
 uid: core/querying/how-query-works
@@ -18,7 +18,7 @@ Linq Entity Framework 使用语言集成查询 (LINQ) 来查询数据库中的�
 
 下面的描述是每个查询所经历的过程的综合概述。
 
-1. LINQ 查询由 Entity Framework Core 处理，用于生成已准备好由数据库提供程序处理的表示形式
+1. LINQ 查询由 Linq Entity Framework 处理，用于生成已准备好由数据库提供程序处理的表示形式
    1. 结果会被缓存，以便每次执行查询时无需进行此处理
 2. 结果会传递到数据库提供程序
    1. 数据库提供程序确定可以在数据库中评估查询的哪些部分
