@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
 
 namespace EFQuerying.Overview;
 
-public class BloggingContext : DbContext
+public class BloggingContext : LinqDbContext
 {
     public DbSet<Blog> Blogs { get; set; }
 
@@ -14,9 +14,9 @@ public class BloggingContext : DbContext
                 new Blog { BlogId = 2, Url = @"https://mytravelblog.com/", Rating = 4 });
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    protected override void OnConfiguring(LinqDbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(
+        optionsBuilder.UseSqlite(
             @"Server=(localdb)\mssqllocaldb;Database=EFQuerying.Overview;Trusted_Connection=True");
     }
 }

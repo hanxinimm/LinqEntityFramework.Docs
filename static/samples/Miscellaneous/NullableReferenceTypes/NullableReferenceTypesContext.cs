@@ -1,15 +1,16 @@
 ﻿using Hunter.EntityFramework;
-using Microsoft.EntityFrameworkCore;
+using Hunter.EntityFramework.Abstractions;
 
 namespace NullableReferenceTypes
 {
     #region Context
-    public class NullableReferenceTypesContext : LinqDbContext
+    public class NullableReferenceTypesContext : LinqAgileDbContext
     {
-        public DbSet<Customer> Customers => Set<Customer>();
-        public DbSet<Order> Orders => Set<Order>();
+        //No need to register them
+        //public DbSet<Customer> Customers => Set<Customer>();
+        //public DbSet<Order> Orders => Set<Order>();
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnConfiguring(LinqDbContextOptionsBuilder optionsBuilder)
             => optionsBuilder
                 .UseSqlServer(
                     @"Server=(localdb)\mssqllocaldb;Database=EFNullableReferenceTypes;Trusted_Connection=True");

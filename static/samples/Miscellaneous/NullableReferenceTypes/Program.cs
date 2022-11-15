@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 
 namespace NullableReferenceTypes
 {
@@ -13,9 +12,9 @@ namespace NullableReferenceTypes
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
 
-                context.Add(new Customer("John", "Doe"));
+                context.Execute(linq => linq.Insert(new Customer("John", "Doe")));
 
-                context.Add(
+                context.Execute(linq => linq.Insert(
                     new Order
                     {
                         ShippingAddress = new Address("London", "Downing"),
@@ -24,21 +23,22 @@ namespace NullableReferenceTypes
                         {
                             ExtraAdditionalInfo = new ExtraOptionalOrderInfo("Some extra additional info")
                         }
-                    });
+                    }));
 
                 context.SaveChanges();
             }
 
             using (var context = new NullableReferenceTypesContext())
             {
-                var john = context.Customers.First(c => c.FirstName == "John");
+                var john = context.Query(linq=>linq.Select<Customer>().Where(c => c.FirstName == "John").First());
                 Console.WriteLine("John's last name: " + john.LastName);
 
                 #region Including
-                var order = context.Orders
-                    .Include(o => o.OptionalInfo!)
-                    .ThenInclude(op => op.ExtraAdditionalInfo)
-                    .Single();
+                var order = context.Query(linq => linq.Select<Order>()
+                    //TODO:自动识别可空类型的判断
+                    //.Where(o => o.OptionalInfo != null && o.OptionalInfo.ExtraAdditionalInfo != null)
+                    .Where(o => o.OptionalInfo?.ExtraAdditionalInfo != null)
+                    .Single());
                 #endregion
 
                 // The following would be a programming bug: we forgot to include ShippingAddress above. It would throw InvalidOperationException.
