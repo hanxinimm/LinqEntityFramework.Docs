@@ -10,9 +10,9 @@ internal class Program
     {
         using (var db = new BloggingContext())
         {
-            db.Query(dbContext => dbContext.OldPosts.Select().SingleOrDefault());
+            db.Query(dbContext => dbContext.Blogs.Select().SingleOrDefault());
 
-            db.Query(dbContext => dbContext.Posts.Select(10).FieldValue(v => v.PostId));
+            db.Query(dbContext => dbContext.ClassPosts.Select(10).FieldValue(v => v.PostId));
 
             db.Query(dbContext => dbContext.GetPosts(1).Select().ToEnumerable());
 
@@ -44,7 +44,7 @@ internal class Program
             db.Execute(dbContext => dbContext.Blogs.Insert(blog));
             db.Execute(dbContext => dbContext.Blogs.Insert().Value(blog));
 
-            db.Execute(dbContext => dbContext.Blogs.InsertOrIgnore(blog).Where(v=>v.BlogId == 1));
+            db.Execute(dbContext => dbContext.Blogs.InsertOrIgnore(blog).Where(v => v.BlogId == 1));
             db.Execute(dbContext => dbContext.Blogs.InsertOrIgnore().Value(blog).Where(v => v.BlogId == 1));
 
 

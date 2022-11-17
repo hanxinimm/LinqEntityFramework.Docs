@@ -1,12 +1,9 @@
 ﻿using Hunter.EntityFramework;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using static Intro.BloggingContext;
 
 namespace Intro;
+
 
 [DbContext(DbProvider.SqlServer)]
 public partial class BloggingContext : LinqDbContext
@@ -48,91 +45,35 @@ public class CustomDbSet<TEntity> : IDbEntity<TEntity>
 
 }
 
-public partial class BloggingContext : ILinqDbContextQuery<IDbEntityQueryLambdaExpression>, ILinqDbContextExecute<IDbEntityExecuteLambdaExpression>
-{
-    #region LinqDbContextQuery
+//public partial class BloggingContext // : ILinqDbContextQuery<IDbEntityQueryLambdaExpression>, ILinqDbContextExecute<IDbEntityExecuteLambdaExpression>
+//{
 
-    public TResult Query<TResult>(
-        Func<IDbEntityQueryLambdaExpression, IDbQueryResulExpression<TResult>> linqExpression,
-        ICallerLineNumberPlaceholder? placeholder = default,
-        [CallerLineNumber] int callerLineNumber = 0)
-    {
-        return Query(linqExpression, callerLineNumber);
-    }
+//    #region LinqDbContextLambdaExpression
 
-    public List<TResult> Query<TResult>(
-        Func<IDbEntityQueryLambdaExpression, IDbQueryListExpression<TResult>> linqExpression,
-        ICallerLineNumberPlaceholder? placeholder = default,
-        [CallerLineNumber] int callerLineNumber = 0)
-    {
-        return Query<List<TResult>>(linqExpression.Method, linqExpression.Target, callerLineNumber);
-    }
+//    //public interface IDbEntityQueryLambdaExpression : IDbEngineLambdaExpression
+//    //{
+//    //    public IDbEntityRelationalQueryLambdaExpression<Post> OldPosts { get; set; }
 
-    public IEnumerable<TResult> Query<TResult>(
-        Func<IDbEntityQueryLambdaExpression, IDbQueryEnumerableExpression<TResult>> linqExpression,
-        ICallerLineNumberPlaceholder? placeholder = default,
-        [CallerLineNumber] int callerLineNumber = 0)
-    {
-        return Query<IEnumerable<TResult>>(linqExpression.Method, linqExpression.Target, callerLineNumber);
-    }
+//    //    public IDbEntityRelationalQueryLambdaExpression<Post> Posts { get; set; }
 
-    public TResult[] Query<TResult>(
-        Func<IDbEntityQueryLambdaExpression, IDbQueryArrayExpression<TResult>> linqExpression,
-        ICallerLineNumberPlaceholder? placeholder = default,
-        [CallerLineNumber] int callerLineNumber = 0)
-    {
-        return Query<TResult[]>(linqExpression.Method, linqExpression.Target, callerLineNumber);
-    }
+//    //    public IDbEntityRelationalQueryLambdaExpression<Blog> Blogs { get; set; }
 
-    public ValueTask<TResult> QueryAsync<TResult>(
-        Func<IDbEntityQueryLambdaExpression, IDbQueryResulExpression<TResult>> linqExpression,
-        CancellationToken cancellationToken = default,
-        ICallerLineNumberPlaceholder? placeholder = default,
-        [CallerLineNumber] int callerLineNumber = 0)
-    {
-        return QueryAsync(linqExpression, cancellationToken, callerLineNumber);
-    }
+//    //    public IDbEntityRelationalQueryLambdaExpression<GetHostPost> GetPosts(int postType) => default;
 
-    #endregion
+//    //}
 
-    #region LinqDbContextExecute
+//    //public interface IDbEntityExecuteLambdaExpression : IDbEngineLambdaExpression
+//    //{
+//    //    public IDbEntityRelationalExecuteLambdaExpression<Blog> OldPosts { get; set; }
 
-    public void Execute(
-        Func<IDbEntityExecuteLambdaExpression, int> linqExpression,
-        ICallerLineNumberPlaceholder? placeholder = default,
-        [CallerLineNumber] int callerLineNumber = 0)
-    {
-        base.Execute(linqExpression, callerLineNumber);
-    }
+//    //    public IDbEntityRelationalExecuteLambdaExpression<Blog> Posts { get; set; }
 
-    #endregion
+//    //    public IDbEntityRelationalExecuteLambdaExpression<Blog> Blogs { get; set; }
 
-    #region LinqDbContextLambdaExpression
+//    //}
 
-    public interface IDbEntityQueryLambdaExpression : IDbEngineLambdaExpression
-    {
-        public IDbEntityRelationalQueryLambdaExpression<Post> OldPosts { get; set; }
-
-        public IDbEntityRelationalQueryLambdaExpression<Post> Posts { get; set; }
-
-        public IDbEntityRelationalQueryLambdaExpression<Blog> Blogs { get; set; }
-
-        public IDbEntityRelationalQueryLambdaExpression<GetHostPost> GetPosts(int postType) => default;
-
-    }
-
-    public interface IDbEntityExecuteLambdaExpression : IDbEngineLambdaExpression
-    {
-        public IDbEntityRelationalExecuteLambdaExpression<Blog> OldPosts { get; set; }
-
-        public IDbEntityRelationalExecuteLambdaExpression<Blog> Posts { get; set; }
-
-        public IDbEntityRelationalExecuteLambdaExpression<Blog> Blogs { get; set; }
-
-    }
-
-    #endregion
-}
+//    #endregion
+//}
 
 
 public class Blog
