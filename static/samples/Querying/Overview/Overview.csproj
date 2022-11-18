@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Joker-Hunter-EntityFramework\Generator.SqlServer\Hunter.EntityFramework.Generator.SqlServer.Debug.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\..\..\..\Joker-Hunter-EntityFramework\Sqlite\Hunter.EntityFramework.Sqlite.csproj" />
   </ItemGroup>
 

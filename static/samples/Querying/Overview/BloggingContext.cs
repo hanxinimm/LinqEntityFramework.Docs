@@ -2,17 +2,18 @@
 
 namespace EFQuerying.Overview;
 
-public class BloggingContext : LinqDbContext
+[DbContext(DbProvider.Sqlite)]
+public partial class BloggingContext : LinqDbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
+    protected DbSet<Blog> Blogs { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Blog>()
-            .HasData(
-                new Blog { BlogId = 1, Url = @"https://devblogs.microsoft.com/dotnet", Rating = 5 },
-                new Blog { BlogId = 2, Url = @"https://mytravelblog.com/", Rating = 4 });
-    }
+    //protected override void OnModelCreating(ModelBuilder modelBuilder)
+    //{
+    //    modelBuilder.Entity<Blog>()
+    //        .HasData(
+    //            new Blog { BlogId = 1, Url = @"https://devblogs.microsoft.com/dotnet", Rating = 5 },
+    //            new Blog { BlogId = 2, Url = @"https://mytravelblog.com/", Rating = 4 });
+    //}
 
     protected override void OnConfiguring(LinqDbContextOptionsBuilder optionsBuilder)
     {
