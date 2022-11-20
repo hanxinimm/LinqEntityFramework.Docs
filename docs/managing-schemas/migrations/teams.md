@@ -1,5 +1,5 @@
 ---
-title: Migrations in Team Environments - EF Core
+title: Migrations in Team Environments - Linq EF
 description: Best practices for managing migrations and resolving conflicts in team environments with Linq Entity Framework
 author: bricelam
 ms.date: 10/30/2017

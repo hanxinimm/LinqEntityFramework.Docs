@@ -1,17 +1,19 @@
+using Hunter.EntityFramework;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace EFQuerying.Pagination;
 
-public class BloggingContext : DbContext
+[DbContext(DbProvider.SqlServer)]
+public partial class BloggingContext : LinqDbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
-    public DbSet<Post> Posts { get; set; }
+    protected DbSet<Blog> Blogs { get; set; }
+    protected DbSet<Post> Posts { get; set; }
 
     #region SimpleLogging
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    protected override void OnConfiguring(LinqDbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder
             .UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Blogging;Trusted_Connection=True")
@@ -19,9 +21,17 @@ public class BloggingContext : DbContext
     }
     #endregion
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    //protected override void OnModelCreating(ModelBuilder modelBuilder)
+    //{
+    //    modelBuilder.Entity<Post>().HasIndex(p => p.Title);
+    //}
+}
+
+public partial class BloggingContext
+{
+    public IEnumerable<TResult> Query<TResult>(Func<IDbContextQueryLambdaExpression, IDbQueryCollectionExpression<TResult>> linqExpression, ICallerLineNumberPlaceholder? placeholder = default, [CallerLineNumber] int callerLineNumber = 0)
     {
-        modelBuilder.Entity<Post>().HasIndex(p => p.Title);
+        return Query<IEnumerable<TResult>>(linqExpression.Method, linqExpression.Target, callerLineNumber);
     }
 }
 

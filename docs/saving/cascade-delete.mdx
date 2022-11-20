@@ -1,5 +1,5 @@
 ---
-title: Cascade Delete - EF Core
+title: Cascade Delete - Linq EF
 description: Configuring cascading behaviors triggered when an entity is deleted or severed from its principal/parent
 author: ajcvickers
 ms.date: 08/10/2021
@@ -7,7 +7,7 @@ uid: core/saving/cascade-delete
 ---
 # Cascade Delete
 
-Linq Entity Framework (EF Core) represents relationships using foreign keys. An entity with a foreign key is the child or dependent entity in the relationship. This entity's foreign key value must match the primary key value (or an alternate key value) of the related principal/parent entity.
+Linq Entity Framework (Linq EF) represents relationships using foreign keys. An entity with a foreign key is the child or dependent entity in the relationship. This entity's foreign key value must match the primary key value (or an alternate key value) of the related principal/parent entity.
 
 If the principal/parent entity is deleted, then the foreign key values of the dependents/children will no longer match the primary or alternate key of _any_ principal/parent. This is an invalid state, and will cause a referential constraint violation in most databases.
 
@@ -21,7 +21,7 @@ The first option is only valid for optional relationships where the foreign key 
 The second option is valid for any kind of relationship and is known as "cascade delete".
 
 > [!TIP]
-> This document describes cascade deletes (and deleting orphans) from the perspective of updating the database. It makes heavy use of concepts introduced in [Change Tracking in EF Core](xref:core/change-tracking/index) and [Changing Foreign Keys and Navigations](xref:core/change-tracking/relationship-changes). Make sure to fully understand these concepts before tackling the material here.
+> This document describes cascade deletes (and deleting orphans) from the perspective of updating the database. It makes heavy use of concepts introduced in [Change Tracking in Linq EF](xref:core/change-tracking/index) and [Changing Foreign Keys and Navigations](xref:core/change-tracking/relationship-changes). Make sure to fully understand these concepts before tackling the material here.
 
 > [!TIP]  
 > You can run and debug into all the code in this document by [downloading the sample code from GitHub](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/CascadeDeletes).
@@ -155,14 +155,14 @@ Cascading behaviors can be applied to:
 
 ### Cascade delete of tracked entities
 
-EF Core always applies configured cascading behaviors to tracked entities. This means that if the application loads all relevant dependent/child entities into the DbContext, as is shown in the examples above, then cascading behaviors will be correctly applied regardless of how the database is configured.
+Linq EF always applies configured cascading behaviors to tracked entities. This means that if the application loads all relevant dependent/child entities into the DbContext, as is shown in the examples above, then cascading behaviors will be correctly applied regardless of how the database is configured.
 
 > [!TIP]
 > The exact timing of when cascading behaviors happen to tracked entities can be controlled using <xref:Microsoft.EntityFrameworkCore.ChangeTracking.ChangeTracker.CascadeDeleteTiming?displayProperty=nameWithType> and <xref:Microsoft.EntityFrameworkCore.ChangeTracking.ChangeTracker.DeleteOrphansTiming?displayProperty=nameWithType>. See [Changing Foreign Keys and Navigations](xref:core/change-tracking/relationship-changes) for more information.
 
 ### Cascade delete in the database
 
-Many database systems also offer cascading behaviors that are triggered when an entity is deleted in the database. EF Core configures these behaviors based on the cascade delete behavior in the EF Core model when a database is created using <xref:Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated%2A> or EF Core migrations. For example, using the model above, the following table is created for posts when using SQL Server:
+Many database systems also offer cascading behaviors that are triggered when an entity is deleted in the database. Linq EF configures these behaviors based on the cascade delete behavior in the Linq EF model when a database is created using <xref:Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated%2A> or Linq EF migrations. For example, using the model above, the following table is created for posts when using SQL Server:
 
 ```sql
 CREATE TABLE [Posts] (
@@ -203,10 +203,10 @@ SELECT @@ROWCOUNT;
 This would result in an exception if the foreign key constraint in the database is not configured for cascade deletes. However, in this case the posts are deleted by the database because it has been configured with `ON DELETE CASCADE` when it was created.
 
 > [!NOTE]
-> Databases don't typically have any way to automatically delete orphans. This is because while EF Core represents relationships using navigations as well of foreign keys, databases have only foreign keys and no navigations. This means that it is usually not possible to sever a relationship without loading both sides into the DbContext.
+> Databases don't typically have any way to automatically delete orphans. This is because while Linq EF represents relationships using navigations as well of foreign keys, databases have only foreign keys and no navigations. This means that it is usually not possible to sever a relationship without loading both sides into the DbContext.
 
 > [!NOTE]
-> The EF Core in-memory database does not currently support cascade deletes in the database.
+> The Linq EF in-memory database does not currently support cascade deletes in the database.
 
 > [!WARNING]
 > Do not configure cascade delete in the database when soft-deleting entities. This may cause entities to be accidentally really deleted instead of soft-deleted.
@@ -265,7 +265,7 @@ This is all reasonable (if a bit draconian in blog management policies!) but att
 There are two ways to handle this situation:
 
 1. Change one or more of the relationships to not cascade delete.
-2. Configure the database without one or more of these cascade deletes, then ensure all dependent entities are loaded so that EF Core can perform the cascading behavior.
+2. Configure the database without one or more of these cascade deletes, then ensure all dependent entities are loaded so that Linq EF can perform the cascading behavior.
 
 Taking the first approach with our example, we could make the blog-owner relationship optional by giving it a nullable foreign key property:
 
@@ -304,7 +304,7 @@ Now what happens if we load both a person and the blog they own, then delete the
 -->
 [!code-csharp[Database_cascade_limitations_1](../../../samples/core/CascadeDeletes/WithDatabaseCycleSamples.cs?name=Database_cascade_limitations_1)]
 
-EF Core will cascade the delete of the owner so that the blog is also deleted:
+Linq EF will cascade the delete of the owner so that the blog is also deleted:
 
 ```sql
 -- Executed DbCommand (8ms) [Parameters=[@p0='1'], CommandType='Text', CommandTimeout='30']
@@ -429,10 +429,10 @@ WHERE [Id] = @p1;
 SELECT @@ROWCOUNT;
 ```
 
-See [Changing Foreign Keys and Navigations](xref:core/change-tracking/relationship-changes) for more information on how EF Core manages foreign keys and navigations as their values are changed.
+See [Changing Foreign Keys and Navigations](xref:core/change-tracking/relationship-changes) for more information on how Linq EF manages foreign keys and navigations as their values are changed.
 
 > [!NOTE]
-> The fixup of relationships like this has been the default behavior of Entity Framework since the first version in 2008. Prior to EF Core it didn't have a name and was not possible to change. It is now known as `ClientSetNull` as described in the next section.
+> The fixup of relationships like this has been the default behavior of Entity Framework since the first version in 2008. Prior to Linq EF it didn't have a name and was not possible to change. It is now known as `ClientSetNull` as described in the next section.
 
 Databases can also be configured to cascade nulls like this when a principal/parent in an optional relationship is deleted. However, this is much less common than using cascading deletes in the database. Using cascading deletes and cascading nulls in the database at the same time will almost always result in relationship cycles when using SQL Server. See the next section for more information on configuring cascading nulls.
 
@@ -457,11 +457,11 @@ Cascade behaviors are configured per relationship using the <xref:Microsoft.Enti
 
 See [Relationships](xref:core/modeling/relationships) for more information on configuring relationships between entity types.
 
-`OnDelete` accepts a value from the, admittedly confusing, <xref:Microsoft.EntityFrameworkCore.DeleteBehavior> enum. This enum defines both the behavior of EF Core on tracked entities, and the configuration of cascade delete in the database when EF is used to create the schema.
+`OnDelete` accepts a value from the, admittedly confusing, <xref:Microsoft.EntityFrameworkCore.DeleteBehavior> enum. This enum defines both the behavior of Linq EF on tracked entities, and the configuration of cascade delete in the database when EF is used to create the schema.
 
 ### Impact on database schema
 
-The following table shows the result of each `OnDelete` value on the foreign key constraint created by EF Core migrations or <xref:Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated%2A>.
+The following table shows the result of each `OnDelete` value on the foreign key constraint created by Linq EF migrations or <xref:Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated%2A>.
 
 | DeleteBehavior        | Impact on database schema
 |:----------------------|--------------------------
@@ -490,22 +490,22 @@ The tables in the following sections cover what happens to dependent/child entit
 
 | DeleteBehavior    | On deleting principal/parent             | On severing from principal/parent
 |:------------------|------------------------------------------|----------------------------------------
-| Cascade           | Dependents deleted by EF Core            | Dependents deleted by EF Core
+| Cascade           | Dependents deleted by Linq EF            | Dependents deleted by Linq EF
 | Restrict          | `InvalidOperationException`              | `InvalidOperationException`
 | NoAction          | `InvalidOperationException`              | `InvalidOperationException`
 | SetNull           | `SqlException` on creating database      | `SqlException` on creating database
 | ClientSetNull     | `InvalidOperationException`              | `InvalidOperationException`
-| ClientCascade     | Dependents deleted by EF Core            | Dependents deleted by EF Core
+| ClientCascade     | Dependents deleted by Linq EF            | Dependents deleted by Linq EF
 | ClientNoAction    | `DbUpdateException`                      | `InvalidOperationException`
 
 Notes:
 
 - The default for required relationships like this is `Cascade`.
 - Using anything other than cascade delete for required relationships will result in an exception when SaveChanges is called.
-  - Typically, this is an `InvalidOperationException` from EF Core since the invalid state is detected in the loaded children/dependents.
-  - `ClientNoAction` forces EF Core to not check fixup dependents before sending them to the database, so in this case the database throws an exception, which is then wrapped in a `DbUpdateException` by SaveChanges.
+  - Typically, this is an `InvalidOperationException` from Linq EF since the invalid state is detected in the loaded children/dependents.
+  - `ClientNoAction` forces Linq EF to not check fixup dependents before sending them to the database, so in this case the database throws an exception, which is then wrapped in a `DbUpdateException` by SaveChanges.
   - `SetNull` is rejected when creating the database since the foreign key column is not nullable.
-- Since dependents/children are loaded, they are always deleted by EF Core, and never left for the database to delete.
+- Since dependents/children are loaded, they are always deleted by Linq EF, and never left for the database to delete.
 
 #### Required relationship with dependents/children not loaded
 
@@ -531,20 +531,20 @@ Notes:
 
 | DeleteBehavior    | On deleting principal/parent             | On severing from principal/parent
 |:------------------|------------------------------------------|----------------------------------------
-| Cascade           | Dependents deleted by EF Core            | Dependents deleted by EF Core
-| Restrict          | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
-| NoAction          | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
-| SetNull           | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
-| ClientSetNull     | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
-| ClientCascade     | Dependents deleted by EF Core            | Dependents deleted by EF Core
-| ClientNoAction    | `DbUpdateException`                      | Dependent FKs set to null by EF Core
+| Cascade           | Dependents deleted by Linq EF            | Dependents deleted by Linq EF
+| Restrict          | Dependent FKs set to null by Linq EF     | Dependent FKs set to null by Linq EF
+| NoAction          | Dependent FKs set to null by Linq EF     | Dependent FKs set to null by Linq EF
+| SetNull           | Dependent FKs set to null by Linq EF     | Dependent FKs set to null by Linq EF
+| ClientSetNull     | Dependent FKs set to null by Linq EF     | Dependent FKs set to null by Linq EF
+| ClientCascade     | Dependents deleted by Linq EF            | Dependents deleted by Linq EF
+| ClientNoAction    | `DbUpdateException`                      | Dependent FKs set to null by Linq EF
 
 Notes:
 
 - The default for optional relationships like this is `ClientSetNull`.
 - Dependents/children are never deleted unless `Cascade` or `ClientCascade` are configured.
-- All other values cause the dependent FKs to be set to null by EF Core...
-  - ...except `ClientNoAction` which tells EF Core not to touch the foreign keys of dependents/children when the principal/parent is deleted. The database therefore throws an exception, which is wrapped as a `DbUpdateException` by SaveChanges.
+- All other values cause the dependent FKs to be set to null by Linq EF...
+  - ...except `ClientNoAction` which tells Linq EF not to touch the foreign keys of dependents/children when the principal/parent is deleted. The database therefore throws an exception, which is wrapped as a `DbUpdateException` by SaveChanges.
 
 #### Optional relationship with dependents/children not loaded
 

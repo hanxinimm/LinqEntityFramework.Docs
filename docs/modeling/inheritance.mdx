@@ -13,7 +13,7 @@ EF can map a .NET type hierarchy to a database. This allows you to write your .N
 
 ## Entity type hierarchy mapping
 
-By convention, EF will not automatically scan for base or derived types; this means that if you want a CLR type in your hierarchy to be mapped, you must explicitly specify that type on your model. For example, specifying only the base type of a hierarchy will not cause EF Core to implicitly include all of its sub-types.
+By convention, EF will not automatically scan for base or derived types; this means that if you want a CLR type in your hierarchy to be mapped, you must explicitly specify that type on your model. For example, specifying only the base type of a hierarchy will not cause Linq EF to implicitly include all of its sub-types.
 
 The following sample exposes a DbSet for `Blog` and its subclass `RssBlog`. If `Blog` has any other subclass, it will not be included in the model.
 
@@ -47,7 +47,7 @@ Finally, the discriminator can also be mapped to a regular .NET property in your
 
 [!code-csharp[Main](../../../samples/core/Modeling/Inheritance/FluentAPI/NonShadowDiscriminator.cs?name=NonShadowDiscriminator&highlight=4)]
 
-When querying for derived entities, which use the TPH pattern, EF Core adds a predicate over discriminator column in the query. This filter makes sure that we don't get any additional rows for base types or sibling types not in the result. This filter predicate is skipped for the base entity type since querying for the base entity will get results for all the entities in the hierarchy. When materializing results from a query, if we come across a discriminator value, which isn't mapped to any entity type in the model, we throw an exception since we don't know how to materialize the results. This error only occurs if your database contains rows with discriminator values, which aren't mapped in the EF model. If you have such data, then you can mark the discriminator mapping in EF Core model as incomplete to indicate that we should always add filter predicate for querying any type in the hierarchy. `IsComplete(false)` call on the discriminator configuration marks the mapping to be incomplete.
+When querying for derived entities, which use the TPH pattern, Linq EF adds a predicate over discriminator column in the query. This filter makes sure that we don't get any additional rows for base types or sibling types not in the result. This filter predicate is skipped for the base entity type since querying for the base entity will get results for all the entities in the hierarchy. When materializing results from a query, if we come across a discriminator value, which isn't mapped to any entity type in the model, we throw an exception since we don't know how to materialize the results. This error only occurs if your database contains rows with discriminator values, which aren't mapped in the EF model. If you have such data, then you can mark the discriminator mapping in Linq EF model as incomplete to indicate that we should always add filter predicate for querying any type in the hierarchy. `IsComplete(false)` call on the discriminator configuration marks the mapping to be incomplete.
 
 [!code-csharp[Main](../../../samples/core/Modeling/Inheritance/FluentAPI/DiscriminatorMappingIncomplete.cs?name=DiscriminatorMappingIncomplete&highlight=5)]
 
@@ -63,7 +63,7 @@ By default, when two sibling entity types in the hierarchy have a property with 
 ## Table-per-type configuration
 
 > [!NOTE]
-> The table-per-type (TPT) feature was introduced in EF Core 5.0.
+> The table-per-type (TPT) feature was introduced in Linq EF 5.0.
 
 In the TPT mapping pattern, all the types are mapped to individual tables. Properties that belong solely to a base type or derived type are stored in a table that maps to that type. Tables that map to derived types also store a foreign key that joins the derived table with the base table.
 
@@ -105,7 +105,7 @@ If you are employing bulk configuration you can retrieve the column name for a s
 ## Table-per-concrete-type configuration
 
 > [!NOTE]
-> The table-per-concrete-type (TPC) feature was introduced in EF Core 7.0.
+> The table-per-concrete-type (TPC) feature was introduced in Linq EF 7.0.
 
 In the TPC mapping pattern, all the types are mapped to individual tables. Each table contains columns for all properties on the corresponding entity type. This addresses some common performance issues with the TPT strategy.
 
@@ -311,7 +311,7 @@ The inheritance mapping strategy chosen has consequences for how primary key val
 
 For the TPT strategy, there is always a row in the table mapped to the base type of the hierarchy. Any kind of key generation can be used on this row, and the keys for other tables are linked to this table using foreign key constraints.
 
-Things get a bit more complicated for TPC. First, it’s important to understand that EF Core requires that all entities in a hierarchy have a unique key value, even if the entities have different types. For example, using our example model, a Dog cannot have the same Id key value as a Cat. Second, unlike TPT, there is no common table that can act as the single place where key values live and can be generated. This means a simple `Identity` column cannot be used.
+Things get a bit more complicated for TPC. First, it’s important to understand that Linq EF requires that all entities in a hierarchy have a unique key value, even if the entities have different types. For example, using our example model, a Dog cannot have the same Id key value as a Cat. Second, unlike TPT, there is no common table that can act as the single place where key values live and can be generated. This means a simple `Identity` column cannot be used.
 
 For databases that support sequences, key values can be generated by using a single sequence referenced in the default constraint for each table. This is the strategy used in the TPC tables shown above, where each table has the following:
 
@@ -319,7 +319,7 @@ For databases that support sequences, key values can be generated by using a sin
 [Id] int NOT NULL DEFAULT (NEXT VALUE FOR [AnimalSequence])
 ```
 
-`AnimalSequence` is a database sequence created by EF Core. This strategy is used by default for TPC hierarchies when using the EF Core database provider for SQL Server. Database providers for other databases that support sequences should have a similar default. Other key generation strategies that use sequences, such as Hi-Lo patterns, may also be used with TPC.
+`AnimalSequence` is a database sequence created by Linq EF. This strategy is used by default for TPC hierarchies when using the Linq EF database provider for SQL Server. Database providers for other databases that support sequences should have a similar default. Other key generation strategies that use sequences, such as Hi-Lo patterns, may also be used with TPC.
 
 While standard Identity columns don't work with TPC, it is possible to use Identity columns if each table is configured with an appropriate seed and increment such that the values generated for each table will never conflict. For example:
 
@@ -346,7 +346,7 @@ CONSTRAINT [FK_Animals_Animals_FavoriteAnimalId] FOREIGN KEY ([FavoriteAnimalId]
 
 But when using TPC, the primary key for any given animal is stored in the table corresponding to the concrete type of that animal. For example, a cat's primary key is stored in the `Cats.Id` column, while a dog's primary key is stored in the `Dogs.Id` column, and so on. This means an FK constraint cannot be created for this relationship.
 
-In practice, this is not a problem as long as the application does not attempt to insert invalid data. For example, if all the data is inserted by EF Core and uses navigations to relate entities, then it is guaranteed that the FK column will contain valid PK values at all times.
+In practice, this is not a problem as long as the application does not attempt to insert invalid data. For example, if all the data is inserted by Linq EF and uses navigations to relate entities, then it is guaranteed that the FK column will contain valid PK values at all times.
 
 ## Summary and guidance
 

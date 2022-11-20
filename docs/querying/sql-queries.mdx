@@ -1,6 +1,6 @@
 ---
 sidebar_position: 4050
-title: SQL Queries - EF Core
+title: SQL Queries - Linq EF
 description: Using SQL queries in Linq Entity Framework
 author: smitpatel
 ms.date: 09/19/2022
@@ -21,7 +21,7 @@ You can use <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.Fr
 
 > [!NOTE]
 >
-> <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSql%2A> was introduced in EF Core 7.0. When using older versions, use <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSqlInterpolated%2A> instead.
+> <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSql%2A> was introduced in Linq EF 7.0. When using older versions, use <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSqlInterpolated%2A> instead.
 
 SQL queries can be used to execute a stored procedure which returns entity data:
 
@@ -89,7 +89,7 @@ On the other hand, the column value is sent via a `DbParameter`, and is therefor
 
 ## Composing with LINQ
 
-You can compose on top of the initial SQL query using LINQ operators; EF Core will treat your SQL as a subquery and compose over it in the database. The following example uses a SQL query that selects from a Table-Valued Function (TVF). And then composes on it using LINQ to do filtering and sorting.
+You can compose on top of the initial SQL query using LINQ operators; Linq EF will treat your SQL as a subquery and compose over it in the database. The following example uses a SQL query that selects from a Table-Valued Function (TVF). And then composes on it using LINQ to do filtering and sorting.
 
 [!code-csharp[Main](../../../samples/core/Querying/SqlQueries/Program.cs#FromSqlComposed)]
 
@@ -110,17 +110,17 @@ The [`Include`](xref:core/querying/related-data/eager) operator can be used to l
 
 [!code-csharp[Main](../../../samples/core/Querying/SqlQueries/Program.cs#FromSqlInclude)]
 
-Composing with LINQ requires your SQL query to be composable, since EF Core will treat the supplied SQL as a subquery. Comopsable SQL queries generally begin with the `SELECT` keyword, and cannot contain SQL features that aren't valid in a subquery, such as:
+Composing with LINQ requires your SQL query to be composable, since Linq EF will treat the supplied SQL as a subquery. Comopsable SQL queries generally begin with the `SELECT` keyword, and cannot contain SQL features that aren't valid in a subquery, such as:
 
 - A trailing semicolon
 - On SQL Server, a trailing query-level hint (for example, `OPTION (HASH JOIN)`)
 - On SQL Server, an `ORDER BY` clause that isn't used with `OFFSET 0` OR `TOP 100 PERCENT` in the `SELECT` clause
 
-SQL Server doesn't allow composing over stored procedure calls, so any attempt to apply additional query operators to such a call will result in invalid SQL. Use <xref:System.Linq.Enumerable.AsEnumerable%2A> or <xref:Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsAsyncEnumerable%2A> right after <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSql%2A> or <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSqlRaw%2A> to make sure that EF Core doesn't try to compose over a stored procedure.
+SQL Server doesn't allow composing over stored procedure calls, so any attempt to apply additional query operators to such a call will result in invalid SQL. Use <xref:System.Linq.Enumerable.AsEnumerable%2A> or <xref:Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsAsyncEnumerable%2A> right after <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSql%2A> or <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSqlRaw%2A> to make sure that Linq EF doesn't try to compose over a stored procedure.
 
 ## Change Tracking
 
-Queries that use <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSql%2A> or <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSqlRaw%2A> follow the exact same change tracking rules as any other LINQ query in EF Core. For example, if the query projects entity types, the results are tracked by default.
+Queries that use <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSql%2A> or <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSqlRaw%2A> follow the exact same change tracking rules as any other LINQ query in Linq EF. For example, if the query projects entity types, the results are tracked by default.
 
 The following example uses a SQL query that selects from a Table-Valued Function (TVF), then disables change tracking with the call to [`AsNoTracking`](xref:core/querying/tracking#no-tracking-queries):
 
@@ -129,7 +129,7 @@ The following example uses a SQL query that selects from a Table-Valued Function
 ## Querying scalar (non-entity) types
 
 > [!NOTE]
-> This feature was introduced in EF Core 7.0.
+> This feature was introduced in Linq EF 7.0.
 
 While <xref:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSql%2A> is useful for querying entities defined in your model, [SqlQuery](https://github.com/dotnet/efcore/blob/2cfc7c3b9020daf9d2e28d404a78814e69941421/src/EFCore.Relational/Extensions/RelationalDatabaseFacadeExtensions.cs#L380) allows you to easily query for scalar, non-entity types via SQL, without needing to drop down to lower-level data access APIs. For example, the following query fetches all the IDs from the `Blogs` table:
 
@@ -153,7 +153,7 @@ This executes the provided SQL and returns the number of rows modified. [Execute
 
 > [!NOTE]
 >
-> Prior to EF Core 7.0, it was sometimes necessary to use the `ExecuteSql` APIs to perform a "bulk update" on the database, as above; this is considerably more efficient than querying for all matching rows and then using `SaveChanges` to modify them. EF Core 7.0 introduced [ExecuteUpdate and ExecuteDelete](xref:core/what-is-new/ef-core-7#executeupdate-and-executedelete-bulk-updates), which made it possible to express efficient bulk update operations via LINQ. It's recommended to use those APIs whenever possible, instead of `ExecuteSql`.
+> Prior to Linq EF 7.0, it was sometimes necessary to use the `ExecuteSql` APIs to perform a "bulk update" on the database, as above; this is considerably more efficient than querying for all matching rows and then using `SaveChanges` to modify them. Linq EF 7.0 introduced [ExecuteUpdate and ExecuteDelete](xref:core/what-is-new/ef-core-7#executeupdate-and-executedelete-bulk-updates), which made it possible to express efficient bulk update operations via LINQ. It's recommended to use those APIs whenever possible, instead of `ExecuteSql`.
 
 ## Limitations
 

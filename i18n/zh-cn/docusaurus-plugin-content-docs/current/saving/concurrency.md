@@ -1,5 +1,5 @@
 ---
-title: Handling Concurrency Conflicts - EF Core
+title: Handling Concurrency Conflicts - Linq EF
 description: Managing conflicts when the same data is updated concurrently with Linq Entity Framework
 author: ajcvickers
 ms.date: 03/03/2018
@@ -8,29 +8,29 @@ uid: core/saving/concurrency
 # Handling Concurrency Conflicts
 
 > [!NOTE]
-> This page documents how concurrency works in EF Core and how to handle concurrency conflicts in your application. See [Concurrency Tokens](xref:core/modeling/concurrency) for details on how to configure concurrency tokens in your model.
+> This page documents how concurrency works in Linq EF and how to handle concurrency conflicts in your application. See [Concurrency Tokens](xref:core/modeling/concurrency) for details on how to configure concurrency tokens in your model.
 
 > [!TIP]
 > You can view this article's [sample](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Saving/Concurrency/) on GitHub.
 
 _Database concurrency_ refers to situations in which multiple processes or users access or change the same data in a database at the same time. _Concurrency control_ refers to specific mechanisms used to ensure data consistency in presence of concurrent changes.
 
-EF Core implements _optimistic concurrency control_, meaning that it will let multiple processes or users make changes independently without the overhead of synchronization or locking. In the ideal situation, these changes will not interfere with each other and therefore will be able to succeed. In the worst case scenario, two or more processes will attempt to make conflicting changes, and only one of them should succeed.
+Linq EF implements _optimistic concurrency control_, meaning that it will let multiple processes or users make changes independently without the overhead of synchronization or locking. In the ideal situation, these changes will not interfere with each other and therefore will be able to succeed. In the worst case scenario, two or more processes will attempt to make conflicting changes, and only one of them should succeed.
 
-## How concurrency control works in EF Core
+## How concurrency control works in Linq EF
 
-Properties configured as concurrency tokens are used to implement optimistic concurrency control: whenever an update or delete operation is performed during `SaveChanges`, the value of the concurrency token on the database is compared against the original value read by EF Core.
+Properties configured as concurrency tokens are used to implement optimistic concurrency control: whenever an update or delete operation is performed during `SaveChanges`, the value of the concurrency token on the database is compared against the original value read by Linq EF.
 
 - If the values match, the operation can complete.
-- If the values do not match, EF Core assumes that another user has performed a conflicting operation and aborts the current transaction.
+- If the values do not match, Linq EF assumes that another user has performed a conflicting operation and aborts the current transaction.
 
 The situation when another user has performed an operation that conflicts with the current operation is known as _concurrency conflict_.
 
 Database providers are responsible for implementing the comparison of concurrency token values.
 
-On relational databases EF Core includes a check for the value of the concurrency token in the `WHERE` clause of any `UPDATE` or `DELETE` statements. After executing the statements, EF Core reads the number of rows that were affected.
+On relational databases Linq EF includes a check for the value of the concurrency token in the `WHERE` clause of any `UPDATE` or `DELETE` statements. After executing the statements, Linq EF reads the number of rows that were affected.
 
-If no rows are affected, a concurrency conflict is detected, and EF Core throws `DbUpdateConcurrencyException`.
+If no rows are affected, a concurrency conflict is detected, and Linq EF throws `DbUpdateConcurrencyException`.
 
 For example, we may want to configure `LastName` on `Person` to be a concurrency token. Then any update operation on Person will include the concurrency check in the `WHERE` clause:
 
@@ -68,4 +68,4 @@ In the following example, `Person.FirstName` and `Person.LastName` are set up as
 
 ## Additional resources
 
-See [Conflict detection in EF Core](/aspnet/core/data/ef-rp/concurrency#conflict-detection-in-ef-core) for an ASP.NET Core sample with conflict detection.
+See [Conflict detection in Linq EF](/aspnet/core/data/ef-rp/concurrency#conflict-detection-in-ef-core) for an ASP.NET Core sample with conflict detection.

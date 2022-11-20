@@ -1,5 +1,5 @@
 ---
-title: Create and Drop APIs - EF Core
+title: Create and Drop APIs - Linq EF
 description: APIs for creating and dropping databases with Linq Entity Framework
 author: bricelam
 ms.date: 10/21/2021

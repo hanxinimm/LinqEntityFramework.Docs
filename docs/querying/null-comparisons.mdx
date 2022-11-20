@@ -10,7 +10,7 @@ uid: core/querying/null-comparisons
 
 ## Introduction
 
-SQL databases operate on 3-valued logic (`true`, `false`, `null`) when performing comparisons, as opposed to the boolean logic of C#. When translating LINQ queries to SQL, EF Core tries to compensate for the difference by introducing additional null checks for some elements of the query.
+SQL databases operate on 3-valued logic (`true`, `false`, `null`) when performing comparisons, as opposed to the boolean logic of C#. When translating LINQ queries to SQL, Linq EF tries to compensate for the difference by introducing additional null checks for some elements of the query.
 To illustrate this, let's define the following entity:
 
 [!code-csharp[Main](../../../samples/core/Querying/NullSemantics/NullSemanticsEntity.cs#Entity)]
@@ -31,7 +31,7 @@ FROM [Entities] AS [e]
 WHERE [e].[Id] = [e].[NullableInt]
 ```
 
-The third query introduces a null check. When `NullableInt` is `null` the comparison `Id <> NullableInt` yields `null`, which would be filtered out by `WHERE` operation. However, from the boolean logic perspective this case should be returned as part of the result. Hence EF Core adds the necessary check to ensure that.
+The third query introduces a null check. When `NullableInt` is `null` the comparison `Id <> NullableInt` yields `null`, which would be filtered out by `WHERE` operation. However, from the boolean logic perspective this case should be returned as part of the result. Hence Linq EF adds the necessary check to ensure that.
 
 ```sql
 SELECT [e].[Id], [e].[Int], [e].[NullableInt], [e].[String1], [e].[String2]
@@ -53,7 +53,7 @@ WHERE (([e].[String1] <> [e].[String2]) OR ([e].[String1] IS NULL OR [e].[String
 
 ## Treatment of nullable values in functions
 
-Many functions in SQL can only return a `null` result if some of their arguments are `null`. EF Core takes advantage of this to produce more efficient queries.
+Many functions in SQL can only return a `null` result if some of their arguments are `null`. Linq EF takes advantage of this to produce more efficient queries.
 The query below illustrates the optimization:
 
 [!code-csharp[Main](../../../samples/core/Querying/NullSemantics/Program.cs#Functions)]
@@ -90,7 +90,7 @@ FROM [Entities] AS [e]
 WHERE ([e].[String1] IS NOT NULL AND [e].[String2] IS NOT NULL) AND (([e].[String1] <> [e].[String2]) OR (CAST(LEN([e].[String1]) AS int) = CAST(LEN([e].[String2]) AS int)))
 ```
 
-In the second query, `null` results are filtered out from `String1` column explicitly. EF Core can safely treat the `String1` column as non-nullable during comparison, resulting in a simpler query.
+In the second query, `null` results are filtered out from `String1` column explicitly. Linq EF can safely treat the `String1` column as non-nullable during comparison, resulting in a simpler query.
 
 ## Using relational null semantics
 

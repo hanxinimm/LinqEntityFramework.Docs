@@ -43,7 +43,7 @@ public class CommitableTransaction
                     command.CommandText = "DELETE FROM dbo.Blogs";
                     command.ExecuteNonQuery();
 
-                    // Run an EF Core command in the transaction
+                    // Run an Linq EF command in the transaction
                     context.Blogs.Add(new Blog { Url = "http://blogs.msdn.com/dotnet" });
                     context.SaveChanges();
                     context.Database.CloseConnection();

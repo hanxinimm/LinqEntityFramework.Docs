@@ -42,7 +42,7 @@ INNER JOIN [Person] AS [p] ON ([p0].[PersonPhotoId] = [p].[PhotoId] AND ([p0].[C
 
 ## 分组关联查询
 
-借助 LINQ GroupJoin 运算符，可以采用与 Join 类似的方式连接两个数据源，但它会创建一组内部值，用于匹配外部元素。 执行与以下示例类似的查询将生成 `Blog`&`IEnumerable<Post>` 的结果。 由于数据库（特别是关系数据库）无法表示一组客户端对象，因此在许多情况下，GroupJoin 不会转换为服务器。 它需要从服务器获取所有数据来进行 GroupJoin，无需使用特殊选择器（下面的第一个查询）。 但如果选择器限制选定的数据，则从服务器提取所有数据可能会导致出现性能问题（下面的第二个查询）。 这就是 EF Core 不转换 GroupJoin 的原因。
+借助 LINQ GroupJoin 运算符，可以采用与 Join 类似的方式连接两个数据源，但它会创建一组内部值，用于匹配外部元素。 执行与以下示例类似的查询将生成 `Blog`&`IEnumerable<Post>` 的结果。 由于数据库（特别是关系数据库）无法表示一组客户端对象，因此在许多情况下，GroupJoin 不会转换为服务器。 它需要从服务器获取所有数据来进行 GroupJoin，无需使用特殊选择器（下面的第一个查询）。 但如果选择器限制选定的数据，则从服务器提取所有数据可能会导致出现性能问题（下面的第二个查询）。 这就是 Linq EF 不转换 GroupJoin 的原因。
 
 <CodeSnippets title="C#" language="csharp" fragment="GroupJoin" showLineNumbers>{ComplexQuery}</CodeSnippets>
 
@@ -105,7 +105,7 @@ OUTER APPLY [Posts] AS [p]
 
 ## 分组查询
 
-LINQ GroupBy 运算符创建 `IGrouping<TKey, TElement>` 类型的结果，其中 `TKey` 和 `TElement` 可以是任意类型。 此外，`IGrouping` 实现了 `IEnumerable<TElement>`，这意味着可在分组后使用任意 LINQ 运算符来对其进行组合。 由于任何数据库结构都无法表示 `IGrouping`，因此在大多数情况下 GroupBy 运算符不会进行任何转换。 聚合运算符应用于返回标量的每个组时，该运算符可在关系数据库中转换为 SQL GROUP BY。 SQL GROUP BY 也会受到限制。 它要求只按标量值进行分组。 投影只能包含分组键列或对列应用的任何聚合。 EF Core 标识此模式并将其转换为服务器，如以下示例中所示：
+LINQ GroupBy 运算符创建 `IGrouping<TKey, TElement>` 类型的结果，其中 `TKey` 和 `TElement` 可以是任意类型。 此外，`IGrouping` 实现了 `IEnumerable<TElement>`，这意味着可在分组后使用任意 LINQ 运算符来对其进行组合。 由于任何数据库结构都无法表示 `IGrouping`，因此在大多数情况下 GroupBy 运算符不会进行任何转换。 聚合运算符应用于返回标量的每个组时，该运算符可在关系数据库中转换为 SQL GROUP BY。 SQL GROUP BY 也会受到限制。 它要求只按标量值进行分组。 投影只能包含分组键列或对列应用的任何聚合。 Linq EF 标识此模式并将其转换为服务器，如以下示例中所示：
 
 <CodeSnippets title="C#" language="csharp" fragment="GroupBy" showLineNumbers>{ComplexQuery}</CodeSnippets>
 
@@ -129,7 +129,7 @@ HAVING COUNT(*) > 0
 ORDER BY [p].[AuthorId]
 ```
 
-EF Core 支持的聚合运算符如下所示
+Linq EF 支持的聚合运算符如下所示
 
 .NET                     | SQL
 ------------------------ | ---
@@ -144,7 +144,7 @@ Sum(x => x.Property)     | SUM(Property)
 
 ## Left Join
 
-虽然 Left Join 不是 LINQ 运算符，但关系数据库具有常用于查询的 Left Join 的概念。 LINQ 查询中的特定模式提供与服务器上的 LEFT JOIN 相同的结果。 EF Core 标识此类模式，并在服务器端生成等效的 LEFT JOIN。 该模式包括在两个数据源之间创建 GroupJoin，然后通过对分组源使用 SelectMany 运算符与 DefaultIfEmpty 来平展分组，从而在内部不具有相关元素时匹配 null。 下面的示例显示该模式的样式及其生成的内容。
+虽然 Left Join 不是 LINQ 运算符，但关系数据库具有常用于查询的 Left Join 的概念。 LINQ 查询中的特定模式提供与服务器上的 LEFT JOIN 相同的结果。 Linq EF 标识此类模式，并在服务器端生成等效的 LEFT JOIN。 该模式包括在两个数据源之间创建 GroupJoin，然后通过对分组源使用 SelectMany 运算符与 DefaultIfEmpty 来平展分组，从而在内部不具有相关元素时匹配 null。 下面的示例显示该模式的样式及其生成的内容。
 
 <CodeSnippets title="C#" language="csharp" fragment="LeftJoin" showLineNumbers>{ComplexQuery}</CodeSnippets>
 
@@ -155,5 +155,5 @@ FROM [Blogs] AS [b]
 LEFT JOIN [Posts] AS [p] ON [b].[BlogId] = [p].[BlogId]
 ```
 
-以上模式在表达式树中创建复杂的结构。 因此，EF Core 要求在紧随运算符的步骤中将 GroupJoin 运算符的分组结果平展。 即使使用了 GroupJoin-DefaultIfEmpty-SelectMany，但采用其他的模式，也不能将其标识为 Left Join。
+以上模式在表达式树中创建复杂的结构。 因此，Linq EF 要求在紧随运算符的步骤中将 GroupJoin 运算符的分组结果平展。 即使使用了 GroupJoin-DefaultIfEmpty-SelectMany，但采用其他的模式，也不能将其标识为 Left Join。
 

@@ -36,7 +36,7 @@ public class AmbientTransaction
                 command.CommandText = "DELETE FROM dbo.Blogs";
                 command.ExecuteNonQuery();
 
-                // Run an EF Core command in the transaction
+                // Run an Linq EF command in the transaction
                 var options = new DbContextOptionsBuilder<BloggingContext>()
                     .UseSqlServer(connection)
                     .Options;

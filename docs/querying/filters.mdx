@@ -8,7 +8,7 @@ uid: core/querying/filters
 ---
 # Global Query Filters
 
-Global query filters are LINQ query predicates applied to Entity Types in the metadata model (usually in `OnModelCreating`). A query predicate is a boolean expression typically passed to the LINQ `Where` query operator.  EF Core applies such filters automatically to any LINQ queries involving those Entity Types.  EF Core also applies them to Entity Types, referenced indirectly through use of Include or navigation property. Some common applications of this feature are:
+Global query filters are LINQ query predicates applied to Entity Types in the metadata model (usually in `OnModelCreating`). A query predicate is a boolean expression typically passed to the LINQ `Where` query operator.  Linq EF applies such filters automatically to any LINQ queries involving those Entity Types.  Linq EF also applies them to Entity Types, referenced indirectly through use of Include or navigation property. Some common applications of this feature are:
 
 * **Soft delete** - An Entity Type defines an `IsDeleted` property.
 * **Multi-tenancy** - An Entity Type defines a `TenantId` property.
@@ -21,7 +21,7 @@ The following example shows how to use Global Query Filters to implement multi-t
 > You can view this article's [sample](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Querying/QueryFilters) on GitHub.
 
 > [!NOTE]
-> Multi-tenancy is used here as a simple example. There is also an article with comprehensive guidance for [multi-tenancy in EF Core applications](xref:core/miscellaneous/multitenancy).
+> Multi-tenancy is used here as a simple example. There is also an article with comprehensive guidance for [multi-tenancy in Linq EF applications](xref:core/miscellaneous/multitenancy).
 
 First, define the entities:
 
@@ -43,7 +43,7 @@ The predicate expressions passed to the `HasQueryFilter` calls will now automati
 
 ## Use of navigations
 
-You can also use navigations in defining global query filters. Using navigations in query filter will cause query filters to be applied recursively. When EF Core expands navigations used in query filters, it will also apply query filters defined on referenced entities.
+You can also use navigations in defining global query filters. Using navigations in query filter will cause query filters to be applied recursively. When Linq EF expands navigations used in query filters, it will also apply query filters defined on referenced entities.
 
 To illustrate this configure query filters in `OnModelCreating` in the following way:
 [!code-csharp[Main](../../../samples/core/Querying/QueryFilters/FilteredBloggingContextRequired.cs#NavigationInFilter)]
@@ -63,7 +63,7 @@ WHERE (
 ```
 
 > [!NOTE]
-> Currently EF Core does not detect cycles in global query filter definitions, so you should be careful when defining them. If specified incorrectly, cycles could lead to infinite loops during query translation.
+> Currently Linq EF does not detect cycles in global query filter definitions, so you should be careful when defining them. If specified incorrectly, cycles could lead to infinite loops during query translation.
 
 ## Accessing entity with query filter using required navigation
 
@@ -84,7 +84,7 @@ The problem can be observed when executing two queries:
 
 [!code-csharp[Main](../../../samples/core/Querying/QueryFilters/Program.cs#Queries)]
 
-With above setup, the first query returns all 6 `Post`s, however the second query only returns 3. This mismatch happens because `Include` method in the second query loads the related `Blog` entities. Since the navigation between `Blog` and `Post` is required, EF Core uses `INNER JOIN` when constructing the query:
+With above setup, the first query returns all 6 `Post`s, however the second query only returns 3. This mismatch happens because `Include` method in the second query loads the related `Blog` entities. Since the navigation between `Blog` and `Post` is required, Linq EF uses `INNER JOIN` when constructing the query:
 
 ```sql
 SELECT [p].[PostId], [p].[BlogId], [p].[Content], [p].[IsDeleted], [p].[Title], [t].[BlogId], [t].[Name], [t].[Url]

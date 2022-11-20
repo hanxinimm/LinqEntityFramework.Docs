@@ -19,7 +19,7 @@ import CascadeDeletesIntroOptionalSamples from '!!raw-loader!../../../../../stat
 
 # 级联删除
 
-Linq Entity Framework (EF Core) 表示使用外键的关系。 具有外键的实体是关系中的子实体或依赖实体。 此实体的外键值必须与相关主体/父实体的主键值（或替换键值）匹配。
+Linq Entity Framework (Linq EF) 表示使用外键的关系。 具有外键的实体是关系中的子实体或依赖实体。 此实体的外键值必须与相关主体/父实体的主键值（或替换键值）匹配。
 
 如果删除主体/父实体，则依赖项/子项的外键值将不再匹配任何主体/父实体的主键或替换键。 这是无效状态，将导致在大多数数据库中出现引用约束冲突。
 
@@ -33,7 +33,7 @@ Linq Entity Framework (EF Core) 表示使用外键的关系。 具有外键的�
 第二个选项适用于任何类型的关系，它被称作“级联删除”。
 
 > [!TIP]
-本文档从更新数据库的角度介绍级联删除（和删除孤立项）。 本文大量使用在在 EF Core 中更改跟踪和更改外键和导航文章中介绍的概念。 请确保在此处处理材料之前充分了解这些概念。
+本文档从更新数据库的角度介绍级联删除（和删除孤立项）。 本文大量使用在在 Linq EF 中更改跟踪和更改外键和导航文章中介绍的概念。 请确保在此处处理材料之前充分了解这些概念。
 
 通过从 [GitHub 下载示例代码](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/CascadeDeletes)，你可运行并调试到本文档中的所有代码。
 
@@ -175,7 +175,7 @@ SELECT @@ROWCOUNT;
 
 ### 级联删除被跟踪实体
 
-EF Core 始终将配置的级联行为应用于跟踪的实体。 这意味着如上面的示例所示，如果应用程序将所有相关的依赖实体/子实体加载到 DbContext 中，则无论如何配置数据库，都将正确应用级联行为。
+Linq EF 始终将配置的级联行为应用于跟踪的实体。 这意味着如上面的示例所示，如果应用程序将所有相关的依赖实体/子实体加载到 DbContext 中，则无论如何配置数据库，都将正确应用级联行为。
 
 > [!TIP]
 可使用 [ChangeTracker.CascadeDeleteTiming](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.changetracking.changetracker.cascadedeletetiming#microsoft-entityframeworkcore-changetracking-changetracker-cascadedeletetiming) 和 [ChangeTracker.DeleteOrphansTiming](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.changetracking.changetracker.deleteorphanstiming#microsoft-entityframeworkcore-changetracking-changetracker-deleteorphanstiming) 控制在被跟踪实体上发生级联行为的确切时间。 有关详细信息，请参阅更改外键和导航。
@@ -229,7 +229,7 @@ SELECT @@ROWCOUNT;
 > 
 
 > [!NOTE]
-EF Core 内存中数据库当前不支持数据库中的级联删除。
+Linq EF 内存中数据库当前不支持数据库中的级联删除。
 > 
 
 > [!WARNING]
@@ -292,7 +292,7 @@ EF Core 内存中数据库当前不支持数据库中的级联删除。
 有两种方法可处理这种情况：
 
 1. 将一个或多个关系更改为不级联删除。
-2. 配置数据库，但不包含这些级联删除中的一个或多个，然后确保已加载所有依赖实体，以便 EF Core 可执行级联行为。
+2. 配置数据库，但不包含这些级联删除中的一个或多个，然后确保已加载所有依赖实体，以便 Linq EF 可执行级联行为。
 
 在我们的示例中采用第一种方法，我们可通过为博客与所有者之间的关系赋予可为 null 的外键属性来使其成为可选关系：
 
@@ -336,7 +336,7 @@ EF Core 内存中数据库当前不支持数据库中的级联删除。
 
 <CodeSnippets title="C#" language="csharp" fragment="Database_cascade_limitations_1" showLineNumbers>{CascadeDeletesWithDatabaseCycleSamples}</CodeSnippets>
 
-EF Core 将级联删除所有者，以便博客也被删除：
+Linq EF 将级联删除所有者，以便博客也被删除：
 
 ```sql title=SQL
 -- Executed DbCommand (8ms) [Parameters=[@p0='1'], CommandType='Text', CommandTimeout='30']
@@ -466,7 +466,7 @@ WHERE [Id] = @p1;
 SELECT @@ROWCOUNT;
 ```
 
-请参阅[更改外键和导航](zh-cn/docs/change-tracking/relationship-changes)，详细了解 EF Core 如何在外键和导航的值更改时管理外键和导航。
+请参阅[更改外键和导航](zh-cn/docs/change-tracking/relationship-changes)，详细了解 Linq EF 如何在外键和导航的值更改时管理外键和导航。
 
 
 > [!NOTE]
@@ -503,7 +503,7 @@ SELECT @@ROWCOUNT;
 
 ### Impact on database schema
 
-The following table shows the result of each `OnDelete` value on the foreign key constraint created by EF Core migrations or <xref:Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated%2A>.
+The following table shows the result of each `OnDelete` value on the foreign key constraint created by Linq EF migrations or <xref:Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated%2A>.
 
 | DeleteBehavior        | Impact on database schema
 |:----------------------|--------------------------
@@ -532,22 +532,22 @@ The tables in the following sections cover what happens to dependent/child entit
 
 | DeleteBehavior    | On deleting principal/parent             | On severing from principal/parent
 |:------------------|------------------------------------------|----------------------------------------
-| Cascade           | Dependents deleted by EF Core            | Dependents deleted by EF Core
+| Cascade           | Dependents deleted by Linq EF            | Dependents deleted by Linq EF
 | Restrict          | `InvalidOperationException`              | `InvalidOperationException`
 | NoAction          | `InvalidOperationException`              | `InvalidOperationException`
 | SetNull           | `SqlException` on creating database      | `SqlException` on creating database
 | ClientSetNull     | `InvalidOperationException`              | `InvalidOperationException`
-| ClientCascade     | Dependents deleted by EF Core            | Dependents deleted by EF Core
+| ClientCascade     | Dependents deleted by Linq EF            | Dependents deleted by Linq EF
 | ClientNoAction    | `DbUpdateException`                      | `InvalidOperationException`
 
 Notes:
 
 - The default for required relationships like this is `Cascade`.
 - Using anything other than cascade delete for required relationships will result in an exception when SaveChanges is called.
-  - Typically, this is an `InvalidOperationException` from EF Core since the invalid state is detected in the loaded children/dependents.
-  - `ClientNoAction` forces EF Core to not check fixup dependents before sending them to the database, so in this case the database throws an exception, which is then wrapped in a `DbUpdateException` by SaveChanges.
+  - Typically, this is an `InvalidOperationException` from Linq EF since the invalid state is detected in the loaded children/dependents.
+  - `ClientNoAction` forces Linq EF to not check fixup dependents before sending them to the database, so in this case the database throws an exception, which is then wrapped in a `DbUpdateException` by SaveChanges.
   - `SetNull` is rejected when creating the database since the foreign key column is not nullable.
-- Since dependents/children are loaded, they are always deleted by EF Core, and never left for the database to delete.
+- Since dependents/children are loaded, they are always deleted by Linq EF, and never left for the database to delete.
 
 #### Required relationship with dependents/children not loaded
 
@@ -573,20 +573,20 @@ Notes:
 
 | DeleteBehavior    | On deleting principal/parent             | On severing from principal/parent
 |:------------------|------------------------------------------|----------------------------------------
-| Cascade           | Dependents deleted by EF Core            | Dependents deleted by EF Core
-| Restrict          | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
-| NoAction          | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
-| SetNull           | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
-| ClientSetNull     | Dependent FKs set to null by EF Core     | Dependent FKs set to null by EF Core
-| ClientCascade     | Dependents deleted by EF Core            | Dependents deleted by EF Core
-| ClientNoAction    | `DbUpdateException`                      | Dependent FKs set to null by EF Core
+| Cascade           | Dependents deleted by Linq EF            | Dependents deleted by Linq EF
+| Restrict          | Dependent FKs set to null by Linq EF     | Dependent FKs set to null by Linq EF
+| NoAction          | Dependent FKs set to null by Linq EF     | Dependent FKs set to null by Linq EF
+| SetNull           | Dependent FKs set to null by Linq EF     | Dependent FKs set to null by Linq EF
+| ClientSetNull     | Dependent FKs set to null by Linq EF     | Dependent FKs set to null by Linq EF
+| ClientCascade     | Dependents deleted by Linq EF            | Dependents deleted by Linq EF
+| ClientNoAction    | `DbUpdateException`                      | Dependent FKs set to null by Linq EF
 
 Notes:
 
 - The default for optional relationships like this is `ClientSetNull`.
 - Dependents/children are never deleted unless `Cascade` or `ClientCascade` are configured.
-- All other values cause the dependent FKs to be set to null by EF Core...
-  - ...except `ClientNoAction` which tells EF Core not to touch the foreign keys of dependents/children when the principal/parent is deleted. The database therefore throws an exception, which is wrapped as a `DbUpdateException` by SaveChanges.
+- All other values cause the dependent FKs to be set to null by Linq EF...
+  - ...except `ClientNoAction` which tells Linq EF not to touch the foreign keys of dependents/children when the principal/parent is deleted. The database therefore throws an exception, which is wrapped as a `DbUpdateException` by SaveChanges.
 
 #### Optional relationship with dependents/children not loaded
 

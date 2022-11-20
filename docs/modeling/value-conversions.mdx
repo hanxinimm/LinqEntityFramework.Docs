@@ -73,9 +73,9 @@ Then, override <xref:Microsoft.EntityFrameworkCore.DbContext.ConfigureConvention
 
 ## Pre-defined conversions
 
-EF Core contains many pre-defined conversions that avoid the need to write conversion functions manually. Instead, EF Core will pick the conversion to use based on the property type in the model and the requested database provider type.
+Linq EF contains many pre-defined conversions that avoid the need to write conversion functions manually. Instead, Linq EF will pick the conversion to use based on the property type in the model and the requested database provider type.
 
-For example, enum to string conversions are used as an example above, but EF Core will actually do this automatically when the provider type is configured as `string` using the generic type of <xref:Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder.HasConversion%2A>:
+For example, enum to string conversions are used as an example above, but Linq EF will actually do this automatically when the provider type is configured as `string` using the generic type of <xref:Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder.HasConversion%2A>:
 
 <!--
             protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -140,7 +140,7 @@ This can be useful when multiple properties use the same conversion.
 
 ## Built-in converters
 
-As mentioned above, EF Core ships with a set of pre-defined <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter%602> classes, found in the <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion> namespace. In many cases EF will choose the appropriate built-in converter based on the type of the property in the model and the type requested in the database, as shown above for enums. For example, using `.HasConversion<int>()` on a `bool` property will cause EF Core to convert bool values to numerical zero and one values:
+As mentioned above, Linq EF ships with a set of pre-defined <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter%602> classes, found in the <xref:Microsoft.EntityFrameworkCore.Storage.ValueConversion> namespace. In many cases EF will choose the appropriate built-in converter based on the type of the property in the model and the type requested in the database, as shown above for enums. For example, using `.HasConversion<int>()` on a `bool` property will cause Linq EF to convert bool values to numerical zero and one values:
 
 <!--
             protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -303,7 +303,7 @@ Or, when creating the converter explicitly:
 -->
 [!code-csharp[ConversionByConverterInstanceWithFacets](../../../samples/core/Modeling/ValueConversions/EnumToStringConversions.cs?name=ConversionByConverterInstanceWithFacets)]
 
-This results in a `varchar(20)` column when using EF Core migrations against SQL Server:
+This results in a `varchar(20)` column when using Linq EF migrations against SQL Server:
 
 ```sql
 CREATE TABLE [Rider] (
@@ -376,7 +376,7 @@ And converted to the underlying `decimal` when stored in the database:
 [!code-csharp[ConfigureImmutableStructProperty](../../../samples/core/Modeling/ValueConversions/SimpleValueObject.cs?name=ConfigureImmutableStructProperty)]
 
 > [!NOTE]
-> This value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that EF Core can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
+> This value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that Linq EF can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
 
 ### Composite value objects
 
@@ -431,10 +431,10 @@ Value converters can currently only convert values to and from a single database
 [!code-csharp[ConfigureCompositeValueObject](../../../samples/core/Modeling/ValueConversions/CompositeValueObject.cs?name=ConfigureCompositeValueObject)]
 
 > [!NOTE]
-> We plan to allow mapping an object to multiple columns in EF Core 6.0, removing the need to use serialization here. This is tracked by [GitHub issue #13947](https://github.com/dotnet/efcore/issues/13947).
+> We plan to allow mapping an object to multiple columns in Linq EF 6.0, removing the need to use serialization here. This is tracked by [GitHub issue #13947](https://github.com/dotnet/efcore/issues/13947).
 
 > [!NOTE]
-> As with the previous example, this value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that EF Core can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
+> As with the previous example, this value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that Linq EF can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
 
 ### Collections of primitives
 
@@ -467,7 +467,7 @@ Using <xref:System.Text.Json> again:
 -->
 [!code-csharp[ConfigurePrimitiveCollection](../../../samples/core/Modeling/ValueConversions/PrimitiveCollection.cs?name=ConfigurePrimitiveCollection)]
 
-`ICollection<string>` represents a mutable reference type. This means that a <xref:Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer%601> is needed so that EF Core can track and detect changes correctly. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
+`ICollection<string>` represents a mutable reference type. This means that a <xref:Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer%601> is needed so that Linq EF can track and detect changes correctly. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
 
 ### Collections of value objects
 
@@ -650,7 +650,7 @@ This can be mapped to a SQL server `rowversion` column using a value converter:
 
 SQL Server discards the <xref:System.DateTime.Kind%2A?displayProperty=nameWithType> flag when storing a <xref:System.DateTime> as a [`datetime`](/sql/t-sql/data-types/datetime-transact-sql) or [`datetime2`](/sql/t-sql/data-types/datetime2-transact-sql). This means that DateTime values coming back from the database always have a <xref:System.DateTimeKind> of `Unspecified`.
 
-Value converters can be used in two ways to deal with this. First, EF Core has a value converter that creates an 8-byte opaque value which preserves the `Kind` flag. For example:
+Value converters can be used in two ways to deal with this. First, Linq EF has a value converter that creates an 8-byte opaque value which preserves the `Kind` flag. For example:
 
 <!--
                 modelBuilder.Entity<Post>()
@@ -688,7 +688,7 @@ If a mix of local and UTC values are being set in entity instances, then the con
 
 ### Use case-insensitive string keys
 
-Some databases, including SQL Server, perform case-insensitive string comparisons by default. .NET, on the other hand, performs case-sensitive string comparisons by default. This means that a foreign key value like "DotNet" will match the primary key value "dotnet" on SQL Server, but will not match it in EF Core. A value comparer for keys can be used to force EF Core into case-insensitive string comparisons like in the database. For example, consider a blog/posts model with string keys:
+Some databases, including SQL Server, perform case-insensitive string comparisons by default. .NET, on the other hand, performs case-sensitive string comparisons by default. This means that a foreign key value like "DotNet" will match the primary key value "dotnet" on SQL Server, but will not match it in Linq EF. A value comparer for keys can be used to force Linq EF into case-insensitive string comparisons like in the database. For example, consider a blog/posts model with string keys:
 
 <!--
         public class Blog

@@ -1,5 +1,5 @@
 ---
-title: Using a Separate Migrations Project - EF Core
+title: Using a Separate Migrations Project - Linq EF
 description: Using a separate migration project for managing database schemas with Linq Entity Framework
 author: bricelam
 ms.date: 11/06/2020

@@ -1,5 +1,5 @@
 ---
-title: Custom Migrations Operations - EF Core
+title: Custom Migrations Operations - Linq EF
 description: Managing custom and raw SQL migrations for database schema management with Linq Entity Framework
 author: bricelam
 ms.date: 10/27/2020

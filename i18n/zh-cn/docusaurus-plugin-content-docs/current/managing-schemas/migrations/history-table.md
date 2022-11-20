@@ -1,5 +1,5 @@
 ---
-title: Custom Migrations History Table - EF Core
+title: Custom Migrations History Table - Linq EF
 description: Customizing a history table to use for migrations with Linq Entity Framework
 author: bricelam
 ms.date: 11/07/2017
@@ -7,7 +7,7 @@ uid: core/managing-schemas/migrations/history-table
 ---
 # Custom Migrations History Table
 
-By default, EF Core keeps track of which migrations have been applied to the database by recording them in a table named
+By default, Linq EF keeps track of which migrations have been applied to the database by recording them in a table named
 `__EFMigrationsHistory`. For various reasons, you may want to customize this table to better suit your needs.
 
 > [!IMPORTANT]
@@ -17,7 +17,7 @@ By default, EF Core keeps track of which migrations have been applied to the dat
 ## Schema and table name
 
 You can change the schema and table name using the `MigrationsHistoryTable()` method in `OnConfiguring()` (or
-`ConfigureServices()` on ASP.NET Core). Here is an example using the SQL Server EF Core provider.
+`ConfigureServices()` on ASP.NET Core). Here is an example using the SQL Server Linq EF provider.
 
 [!code-csharp[Main](../../../../samples/core/Schemas/Migrations/MigrationTableNameContext.cs#TableNameContext)]
 

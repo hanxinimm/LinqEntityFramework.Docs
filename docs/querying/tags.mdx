@@ -72,5 +72,5 @@ ORDER BY [p].[Location].STDistance(@__myLocation_0) DESC
 ## Known limitations
 
 **Query tags aren't parameterizable:**
-EF Core always treats query tags in the LINQ query as string literals that are included in the generated SQL.
+Linq EF always treats query tags in the LINQ query as string literals that are included in the generated SQL.
 Compiled queries that take query tags as parameters aren't allowed.

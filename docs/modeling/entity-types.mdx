@@ -1,6 +1,6 @@
 ---
 sidebar_position: 3020
-title: 实体类型 - EF Core
+title: 实体类型 - Linq EF
 description: How to configure and map 实体类型 using Linq Entity Framework
 author: AndriySvyryd
 ms.date: 10/25/2021
@@ -8,7 +8,7 @@ uid: core/modeling/entity-types
 ---
 # 实体类型
 
-在上下文中包含一种类型的 DbSet 意味着它包含在 EF Core 的模型中；我们通常将此类类型称为实体。 EF Core 可以从/向数据库中读取和写入实体实例，如果使用的是关系数据库，EF Core 可以通过迁移为实体创建表。
+在上下文中包含一种类型的 DbSet 意味着它包含在 Linq EF 的模型中；我们通常将此类类型称为实体。 Linq EF 可以从/向数据库中读取和写入实体实例，如果使用的是关系数据库，Linq EF 可以通过迁移为实体创建表。
 
 ## 在模型中包含类型
 
@@ -39,7 +39,7 @@ If you don't want a type to be included in the model, you can exclude it:
 ### Excluding from migrations
 
 > [!NOTE]
-> The ability to exclude tables from migrations was introduced in EF Core 5.0.
+> The ability to exclude tables from migrations was introduced in Linq EF 5.0.
 
 It is sometimes useful to have the same entity type mapped in multiple `DbContext` types. This is especially true when using [bounded contexts](https://www.martinfowler.com/bliki/BoundedContext.html), for which it is common to have a different `DbContext` type for each bounded context.
 
@@ -152,7 +152,7 @@ You can set an arbitrary text comment that gets set on the database table, allow
 ### [Data Annotations](#tab/data-annotations)
 
 > [!NOTE]
-> Setting comments via data annotations was introduced in EF Core 5.0.
+> Setting comments via data annotations was introduced in Linq EF 5.0.
 
 [!code-csharp[Main](../../../samples/core/Modeling/EntityTypes/DataAnnotations/TableComment.cs?name=TableComment&highlight=1)]
 
@@ -165,7 +165,7 @@ You can set an arbitrary text comment that gets set on the database table, allow
 ## Shared-type 实体类型
 
 > [!NOTE]
-> Support for Shared-type 实体类型 was introduced in EF Core 5.0.
+> Support for Shared-type 实体类型 was introduced in Linq EF 5.0.
 
 实体类型 that use the same CLR type are known as shared-type 实体类型. These 实体类型 need to be configured with a unique name, which must be supplied whenever the shared-type entity type is used, in addition to the CLR type. This means that the corresponding `DbSet` property must be implemented using a `Set` call.
 

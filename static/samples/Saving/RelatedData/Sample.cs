@@ -37,7 +37,7 @@ public class Sample
         using (var context = new BloggingContext())
         {
             var blog = context.Blogs.Include(b => b.Posts).First();
-            var post = new Post { Title = "Intro to EF Core" };
+            var post = new Post { Title = "Intro to Linq EF" };
 
             blog.Posts.Add(post);
             context.SaveChanges();

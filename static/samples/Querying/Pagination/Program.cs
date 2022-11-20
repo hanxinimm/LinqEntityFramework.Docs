@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 
 namespace EFQuerying.Pagination;
 
@@ -18,11 +17,10 @@ internal class Program
         {
             #region OffsetPagination
             var position = 20;
-            var nextPage = context.Posts
+            var nextPage = context.Query(linq => linq.Posts
+                .Select()
                 .OrderBy(b => b.PostId)
-                .Skip(position)
-                .Take(10)
-                .ToList();
+                .Paging(position, 10).ToEnumerable());
             #endregion
         }
 
@@ -30,11 +28,12 @@ internal class Program
         {
             #region KeySetPagination
             var lastId = 55;
-            var nextPage = context.Posts
-                .OrderBy(b => b.PostId)
+
+            var nextPage = context.Query(linq => linq.Posts
+                .Select(10)
                 .Where(b => b.PostId > lastId)
-                .Take(10)
-                .ToList();
+                .OrderBy(b => b.PostId)
+                .ToList());
             #endregion
         }
 
@@ -43,12 +42,13 @@ internal class Program
             #region KeySetPaginationWithMultipleKeys
             var lastDate = new DateTime(2020, 1, 1);
             var lastId = 55;
-            var nextPage = context.Posts
-                .OrderBy(b => b.Date)
-                .ThenBy(b => b.PostId)
+
+            var topPage = context.Query(linq => linq.Posts
+                .Select(10)
                 .Where(b => b.Date > lastDate || (b.Date == lastDate && b.PostId > lastId))
-                .Take(10)
-                .ToList();
+                //.OrderBy(b => new { b.Date, b.PostId })
+                .OrderBy(b => new { b.Date, b.PostId })
+                .ToList());
             #endregion
         }
     }

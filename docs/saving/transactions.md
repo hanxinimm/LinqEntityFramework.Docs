@@ -1,5 +1,5 @@
 ---
-title: Transactions - EF Core
+title: Transactions - Linq EF
 description: Managing transactions for atomicity when saving data with Linq Entity Framework
 author: roji
 ms.date: 9/26/2020
@@ -32,7 +32,7 @@ While all relational database providers support transactions, other providers ty
 ## Savepoints
 
 > [!NOTE]
-> This feature was introduced in EF Core 5.0.
+> This feature was introduced in Linq EF 5.0.
 
 When `SaveChanges` is invoked and a transaction is already in progress on the context, EF automatically creates a *savepoint* before saving any data. Savepoints are points within a database transaction which may later be rolled back to, if an error occurs or for any other reason. If `SaveChanges` encounters any error, it automatically rolls the transaction back to the savepoint, leaving the transaction in the same state as if it had never started. This allows you to possibly correct issues and retry saving, in particular when [optimistic concurrency](xref:core/saving/concurrency) issues occur.
 
@@ -107,7 +107,7 @@ It is also possible to enlist in an explicit transaction.
 
 ### Limitations of System.Transactions
 
-1. EF Core relies on database providers to implement support for System.Transactions. If a provider does not implement support for System.Transactions, it is possible that calls to these APIs will be completely ignored. SqlClient supports it.
+1. Linq EF relies on database providers to implement support for System.Transactions. If a provider does not implement support for System.Transactions, it is possible that calls to these APIs will be completely ignored. SqlClient supports it.
 
    > [!IMPORTANT]
    > It is recommended that you test that the API behaves correctly with your provider before you rely on it for managing transactions. You are encouraged to contact the maintainer of the database provider if it does not.

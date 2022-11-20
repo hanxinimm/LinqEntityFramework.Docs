@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace EFQuerying.ComplexQuery;
 
@@ -8,22 +9,32 @@ internal class Program
     {
         using (var context = new BloggingContext())
         {
+            //var query = from photo in context.Set<PersonPhoto>()
+            //            join person in context.Set<Person>()
+            //                on photo.PersonPhotoId equals person.PhotoId
+            //            select new { person, photo };
+
             #region Join
-            var query = from photo in context.Set<PersonPhoto>()
-                        join person in context.Set<Person>()
-                            on photo.PersonPhotoId equals person.PhotoId
-                        select new { person, photo };
+
+            var query = context.Query(linq => linq.PersonPhotos.Select()
+                .LeftJoin<Person>((photo,person)=> photo.PersonPhotoId == person.PhotoId)
+                .ToList());
+
             #endregion
         }
 
         using (var context = new BloggingContext())
         {
+            //var query = from photo in context.Set<PersonPhoto>()
+            //            join person in context.Set<Person>()
+            //                on new { Id = (int?)photo.PersonPhotoId, photo.Caption }
+            //                equals new { Id = person.PhotoId, Caption = "SN" }
+            //            select new { person, photo };
+
             #region JoinComposite
-            var query = from photo in context.Set<PersonPhoto>()
-                        join person in context.Set<Person>()
-                            on new { Id = (int?)photo.PersonPhotoId, photo.Caption }
-                            equals new { Id = person.PhotoId, Caption = "SN" }
-                        select new { person, photo };
+            var query = context.Query(linq => linq.PersonPhotos.Select()
+                .LeftJoin<Person>((photo, person) => photo.PersonPhotoId == person.PhotoId && photo.Caption == "SN")
+                .ToList());
             #endregion
         }
 
@@ -49,23 +60,35 @@ internal class Program
 
         using (var context = new BloggingContext())
         {
+            //var query = from b in context.Set<Blog>()
+            //            from p in context.Set<Post>()
+            //            select new { b, p };
+            //TODO:待实现
             #region SelectManyConvertedToCrossJoin
-            var query = from b in context.Set<Blog>()
-                        from p in context.Set<Post>()
-                        select new { b, p };
+            var query = context.Query(linq => linq.PersonPhotos.Select()
+                .LeftJoin<Person>((photo, person) => photo.PersonPhotoId == person.PhotoId && photo.Caption == "SN")
+                .ToList());
             #endregion
         }
 
         using (var context = new BloggingContext())
         {
-            #region SelectManyConvertedToJoin
-            var query = from b in context.Set<Blog>()
-                        from p in context.Set<Post>().Where(p => b.BlogId == p.BlogId)
-                        select new { b, p };
+            //var query = from b in context.Set<Blog>()
+            //            from p in context.Set<Post>().Where(p => b.BlogId == p.BlogId)
+            //            select new { b, p };
 
-            var query2 = from b in context.Set<Blog>()
-                         from p in context.Set<Post>().Where(p => b.BlogId == p.BlogId).DefaultIfEmpty()
-                         select new { b, p };
+            //var query2 = from b in context.Set<Blog>()
+            //             from p in context.Set<Post>().Where(p => b.BlogId == p.BlogId).DefaultIfEmpty()
+            //             select new { b, p };
+
+            #region SelectManyConvertedToJoin
+            var query = context.Query(linq => linq.PersonPhotos.Select()
+                .LeftJoin<Person>((photo, person) => photo.PersonPhotoId == person.PhotoId)
+                .ToList());
+
+            var query2 = context.Query(linq => linq.PersonPhotos.Select()
+                .LeftJoin<Person>((photo, person) => photo.PersonPhotoId == person.PhotoId && photo.Caption == "SN")
+                .ToList());
             #endregion
         }
 

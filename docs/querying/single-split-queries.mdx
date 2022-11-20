@@ -24,7 +24,7 @@ If a typical blog has multiple related posts, rows for these posts will duplicat
 ## Split queries
 
 > [!NOTE]
-> This feature was introduced in EF Core 5.0, where it only worked when using `Include`. EF Core 6.0 added support for split queries when loading related data in projections, without `Include`.
+> This feature was introduced in Linq EF 5.0, where it only worked when using `Include`. Linq EF 6.0 added support for split queries when loading related data in projections, without `Include`.
 
 EF allows you to specify that a given LINQ query should be *split* into multiple SQL queries. Instead of JOINs, split queries generate an additional SQL query for each included collection navigation:
 
@@ -59,9 +59,9 @@ When split queries are configured as the default, it's still possible to configu
 
 [!code-csharp[Main](../../../samples/core/Querying/RelatedData/Program.cs?name=AsSingleQuery&highlight=5)]
 
-EF Core uses single query mode by default in the absence of any configuration. Since it may cause performance issues, EF Core generates a warning whenever following conditions are met:
+Linq EF uses single query mode by default in the absence of any configuration. Since it may cause performance issues, Linq EF generates a warning whenever following conditions are met:
 
-- EF Core detects that the query loads multiple collections.
+- Linq EF detects that the query loads multiple collections.
 - User hasn't configured query splitting mode globally.
 - User hasn't used `AsSingleQuery`/`AsSplitQuery` operator on the query.
 

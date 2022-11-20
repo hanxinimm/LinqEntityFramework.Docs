@@ -1,5 +1,5 @@
 ---
-title: Migrations with Multiple Providers - EF Core
+title: Migrations with Multiple Providers - Linq EF
 description: Using migrations to manage database schemas when targeting multiple database providers with Linq Entity Framework
 author: bricelam
 ms.date: 10/29/2020
@@ -7,7 +7,7 @@ uid: core/managing-schemas/migrations/providers
 ---
 # Migrations with Multiple Providers
 
-The [EF Core Tools](xref:core/cli/index) only scaffold migrations for the active provider. Sometimes, however, you may want to use more than one provider (for example Microsoft SQL Server and SQLite) with your DbContext. Handle this by maintaining multiple sets of migrations--one for each provider--and adding a migration to each for every model change.
+The [Linq EF Tools](xref:core/cli/index) only scaffold migrations for the active provider. Sometimes, however, you may want to use more than one provider (for example Microsoft SQL Server and SQLite) with your DbContext. Handle this by maintaining multiple sets of migrations--one for each provider--and adding a migration to each for every model change.
 
 ## Using multiple context types
 
@@ -50,7 +50,7 @@ It's also possible to use one DbContext type. This currently requires moving the
 > [!TIP]
 > You can view this article's [sample on GitHub](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Schemas/TwoProjectMigrations).
 
-Starting in EF Core 5.0, you can pass arguments into the app from the tools. This can enable a more streamlined workflow that avoids having to make manual changes to the project when running the tools.
+Starting in Linq EF 5.0, you can pass arguments into the app from the tools. This can enable a more streamlined workflow that avoids having to make manual changes to the project when running the tools.
 
 Here's one pattern that works well when using a [Generic Host](/dotnet/core/extensions/generic-host).
 
@@ -78,4 +78,4 @@ Add-Migration MyMigration -Args "--provider Sqlite"
 ***
 
 > [!NOTE]
-> The ability to specify additional arguments for the app was added in EF Core 5.0. If you're using an older version, specify configuration values with environment variables instead.
+> The ability to specify additional arguments for the app was added in Linq EF 5.0. If you're using an older version, specify configuration values with environment variables instead.

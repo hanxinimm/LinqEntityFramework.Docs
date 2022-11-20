@@ -93,9 +93,9 @@ import EncryptPropertyValues from '!!raw-loader!../../../../../static/samples/Mo
 
 ## 预定义的转换
 
-EF Core 含有许多预定义转换，不需要手动编写转换函数。 而是根据模型中的属性类型和请求的数据库提供程序类型选取要使用的转换。
+Linq EF 含有许多预定义转换，不需要手动编写转换函数。 而是根据模型中的属性类型和请求的数据库提供程序类型选取要使用的转换。
 
-例如，枚举到字符串转换用作上面的示例，但在提供程序类型配置为 `string` 使用泛型类型 [`HasConversion`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.metadata.builders.propertybuilder.hasconversion)时，EF Core 实际上会自动执行此操作：
+例如，枚举到字符串转换用作上面的示例，但在提供程序类型配置为 `string` 使用泛型类型 [`HasConversion`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.metadata.builders.propertybuilder.hasconversion)时，Linq EF 实际上会自动执行此操作：
 
 <!--
             protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -151,7 +151,7 @@ EF Core 含有许多预定义转换，不需要手动编写转换函数。 而�
 
 ## 内置转换器
 
-如上所述，LEF Core 附带了一组预定义 [`ValueConverter<TModel,TProvider>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion.valueconverter-2) 类，这些 [Microsoft.EntityFrameworkCore.Storage.ValueConversion](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion) 类位于命名空间中。 在许多情况下，EF 将根据模型中属性的类型和在数据库中请求的类型，选择适当的内置转换器，正如上面的枚举转换示例所示。 例如，对 `bool` 属性使用 `.HasConversion<int>()` 会使 EF Core 将布尔值转换为数值零和一：
+如上所述，LLinq EF 附带了一组预定义 [`ValueConverter<TModel,TProvider>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion.valueconverter-2) 类，这些 [Microsoft.EntityFrameworkCore.Storage.ValueConversion](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.storage.valueconversion) 类位于命名空间中。 在许多情况下，EF 将根据模型中属性的类型和在数据库中请求的类型，选择适当的内置转换器，正如上面的枚举转换示例所示。 例如，对 `bool` 属性使用 `.HasConversion<int>()` 会使 Linq EF 将布尔值转换为数值零和一：
 <!--
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
@@ -318,7 +318,7 @@ Or, when creating the converter explicitly:
 -->
 [!code-csharp[ConversionByConverterInstanceWithFacets](../../../samples/core/Modeling/ValueConversions/EnumToStringConversions.cs?name=ConversionByConverterInstanceWithFacets)]
 
-This results in a `varchar(20)` column when using EF Core migrations against SQL Server:
+This results in a `varchar(20)` column when using Linq EF migrations against SQL Server:
 
 ```sql
 CREATE TABLE [Rider] (
@@ -394,7 +394,7 @@ Now any time this converter is used, the database column will be non-unicode wit
 <CodeSnippets title="C#" language="csharp" fragment="ConfigureImmutableStructProperty" showLineNumbers>{SimpleValueObject}</CodeSnippets>
 
 > [!NOTE]
- This value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that EF Core can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
+ This value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that Linq EF can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
 > 
 
 ### 复合值对象
@@ -453,11 +453,11 @@ Now any time this converter is used, the database column will be non-unicode wit
 <CodeSnippets title="C#" language="csharp" fragment="ConfigureCompositeValueObject" showLineNumbers>{CompositeValueObject}</CodeSnippets>
 
 > [!NOTE]
-在 EF Core 6.0 中，我们计划允许将一个对象映射到多个列，从而不必使用序列化。 [GitHub 问题 #13947](https://github.com/dotnet/efcore/issues/13947) 对此进行跟踪。
+在 Linq EF 6.0 中，我们计划允许将一个对象映射到多个列，从而不必使用序列化。 [GitHub 问题 #13947](https://github.com/dotnet/efcore/issues/13947) 对此进行跟踪。
 > 
 
 > [!NOTE]
-As with the previous example, this value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that EF Core can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
+As with the previous example, this value object is implemented as a [readonly struct](/dotnet/csharp/language-reference/builtin-types/struct). This means that Linq EF can snapshot and compare values without issue. See [Value Comparers](xref:core/modeling/value-comparers) for more information.
 > 
 
 ### 基元的集合
@@ -495,7 +495,7 @@ As with the previous example, this value object is implemented as a [readonly st
 <CodeSnippets title="C#" language="csharp" fragment="ConfigurePrimitiveCollection" showLineNumbers>{PrimitiveCollection}</CodeSnippets>
 
 
-`ICollection<string>` 表示可变引用类型。 这意味着需要一个， [`ValueComparer<T>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.changetracking.valuecomparer-1) 以便 EF Core 可以正确跟踪和检测更改。 有关详细信息，请参阅[`值比较器`](https://learn.microsoft.com/zh-cn/ef/core/modeling/value-comparers)。
+`ICollection<string>` 表示可变引用类型。 这意味着需要一个， [`ValueComparer<T>`](https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.changetracking.valuecomparer-1) 以便 Linq EF 可以正确跟踪和检测更改。 有关详细信息，请参阅[`值比较器`](https://learn.microsoft.com/zh-cn/ef/core/modeling/value-comparers)。
 
 ### Collections of value objects
 
@@ -678,7 +678,7 @@ This can be mapped to a SQL server `rowversion` column using a value converter:
 
 SQL Server discards the <xref:System.DateTime.Kind%2A?displayProperty=nameWithType> flag when storing a <xref:System.DateTime> as a [`datetime`](/sql/t-sql/data-types/datetime-transact-sql) or [`datetime2`](/sql/t-sql/data-types/datetime2-transact-sql). This means that DateTime values coming back from the database always have a <xref:System.DateTimeKind> of `Unspecified`.
 
-Value converters can be used in two ways to deal with this. First, EF Core has a value converter that creates an 8-byte opaque value which preserves the `Kind` flag. For example:
+Value converters can be used in two ways to deal with this. First, Linq EF has a value converter that creates an 8-byte opaque value which preserves the `Kind` flag. For example:
 
 <!--
                 modelBuilder.Entity<Post>()
@@ -716,7 +716,7 @@ If a mix of local and UTC values are being set in entity instances, then the con
 
 ### Use case-insensitive string keys
 
-Some databases, including SQL Server, perform case-insensitive string comparisons by default. .NET, on the other hand, performs case-sensitive string comparisons by default. This means that a foreign key value like "DotNet" will match the primary key value "dotnet" on SQL Server, but will not match it in EF Core. A value comparer for keys can be used to force EF Core into case-insensitive string comparisons like in the database. For example, consider a blog/posts model with string keys:
+Some databases, including SQL Server, perform case-insensitive string comparisons by default. .NET, on the other hand, performs case-sensitive string comparisons by default. This means that a foreign key value like "DotNet" will match the primary key value "dotnet" on SQL Server, but will not match it in Linq EF. A value comparer for keys can be used to force Linq EF into case-insensitive string comparisons like in the database. For example, consider a blog/posts model with string keys:
 
 <!--
         public class Blog

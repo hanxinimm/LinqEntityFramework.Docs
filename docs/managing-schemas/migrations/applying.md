@@ -1,5 +1,5 @@
 ---
-title: Applying Migrations - EF Core
+title: Applying Migrations - Linq EF
 description: Strategies for applying schema migrations to production and development databases using Linq Entity Framework
 author: bricelam
 ms.date: 11/02/2021
@@ -92,7 +92,7 @@ Script generation accepts the following two arguments to indicate which range of
 
 ## Idempotent SQL scripts
 
-The SQL scripts generated above can only be applied to change your schema from one migration to another; it is your responsibility to apply the script appropriately, and only to databases in the correct migration state. EF Core also supports generating **idempotent** scripts, which internally check which migrations have already been applied (via the migrations history table), and only apply missing ones. This is useful if you don't exactly know what the last migration applied to the database was, or if you are deploying to multiple databases that may each be at a different migration.
+The SQL scripts generated above can only be applied to change your schema from one migration to another; it is your responsibility to apply the script appropriately, and only to databases in the correct migration state. Linq EF also supports generating **idempotent** scripts, which internally check which migrations have already been applied (via the migrations history table), and only apply missing ones. This is useful if you don't exactly know what the last migration applied to the database was, or if you are deploying to multiple databases that may each be at a different migration.
 
 The following generates idempotent migrations:
 
@@ -157,12 +157,12 @@ Note that this can be used to roll back to an earlier migration as well.
 
 ***
 
-For more information on applying migrations via the command-line tools, see the [EF Core tools reference](xref:core/cli/index).
+For more information on applying migrations via the command-line tools, see the [Linq EF tools reference](xref:core/cli/index).
 
 ## Bundles
 
 > [!NOTE]
-> This feature was introduced in EF Core 6.0.
+> This feature was introduced in Linq EF 6.0.
 
 Migration bundles are single-file executables that can be used to apply migrations to a database. They address some of the shortcomings of the SQL script and command-line tools:
 
@@ -201,7 +201,7 @@ Bundle-Migration -SelfContained -TargetRuntime linux-x64
 
 ***
 
-For more information on creating bundles see the [EF Core tools reference](xref:core/cli/index).
+For more information on creating bundles see the [Linq EF tools reference](xref:core/cli/index).
 
 ### `efbundle`
 

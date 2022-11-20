@@ -20,7 +20,7 @@ import PaginationQuery from '!!raw-loader!../../../../../static/samples/Querying
 
 ## 偏移分页
 
-使用数据库实现分页的一种常见方法是在 SQL) 中使用 Skip 和 Take (OFFSETLIMIT 。 给定页面大小为 10 个结果，可以使用 EF Core 提取第三页，如下所示：
+使用数据库实现分页的一种常见方法是在 SQL 中使用 `Paging` (OFFSETLIMIT) 。 给定页面大小为 10 个结果，可以使用 Linq EF 提取第三页，如下所示：
 
 <CodeSnippets title="C#" language="csharp" fragment="OffsetPagination" metastring='{4,5}' showLineNumbers>{PaginationQuery}</CodeSnippets>
 
@@ -49,7 +49,7 @@ Keyset 分页适用于用户向前和向后导航但不支持随机访问的分�
 这可确保下一页准确选取上一页结束的位置。 添加更多的排序键时，可以添加其他子句。
 
 > [!NOTE]
-大多数 SQL 数据库都支持更简单、更高效的上述版本，使用行值： WHERE (Date, Id) > (@lastDate, @lastId) EF Core 目前不支持在 LINQ 查询中表示这一点，这是由 [#26822](https://github.com/dotnet/efcore/issues/26822) 跟踪的。
+大多数 SQL 数据库都支持更简单、更高效的上述版本，使用行值： WHERE (Date, Id) > (@lastDate, @lastId) Linq EF 目前不支持在 LINQ 查询中表示这一点，这是由 [#26822](https://github.com/dotnet/efcore/issues/26822) 跟踪的。
 > 
 
 ## 索引
@@ -63,4 +63,4 @@ Keyset 分页适用于用户向前和向后导航但不支持随机访问的分�
 * 若要详细了解基于偏移的分页的缺点和键集分页的缺点， [请参阅此文章](https://use-the-index-luke.com/no-offset)。
 * [.NET Data Community Standup 会话](https://www.youtube.com/watch?v=DIKH-q-gJNU) 我们将讨论分页并演示上述所有概念。
 * 比较偏移量和键集分页的技术深入[演示](https://www.slideshare.net/MarkusWinand/p2d2-pagination-done-the-postgresql-way)。 虽然内容处理 PostgreSQL 数据库，但常规信息也对其他关系数据库有效。
-* 有关 EF Core 上简化密钥集分页的扩展，请参阅[MR.EntityFrameworkCore.KeysetPagination](https://github.com/mrahhal/MR.EntityFrameworkCore.KeysetPagination) 和 [MR.AspNetCore.Pagination](https://github.com/mrahhal/MR.AspNetCore.Pagination).
+* 有关 Linq EF 上简化密钥集分页的扩展，请参阅[MR.EntityFrameworkCore.KeysetPagination](https://github.com/mrahhal/MR.EntityFrameworkCore.KeysetPagination) 和 [MR.AspNetCore.Pagination](https://github.com/mrahhal/MR.AspNetCore.Pagination).
