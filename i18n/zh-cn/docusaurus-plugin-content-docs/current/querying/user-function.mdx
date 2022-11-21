@@ -7,6 +7,10 @@ ms.date: 11/23/2020
 uid: core/querying/user-defined-function-mapping
 ---
 
+import UserDefinedFunctionMappingModel from '!!raw-loader!../../../../../static/samples/Querying/UserDefinedFunctionMapping/Model.cs';
+import UserDefinedFunctionMappingProgram from '!!raw-loader!../../../../../static/samples/Querying/UserDefinedFunctionMapping/Program.cs';
+
+
 
 # 用户定义的函数映射
 
@@ -16,15 +20,17 @@ Linq EF 允许在查询中使用用户定义的 SQL 函数。 为此，需要在
 
 为了说明用户定义的函数映射的工作原理，让我们定义以下实体：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#Entities)]
+<CodeSnippets title="C#" language="csharp" fragment="Entities" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
-And the following model configuration:
+以及以下模型配置：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#EntityConfiguration)]
+<CodeSnippets title="C#" language="csharp" fragment="EntityConfiguration" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
-Blog can have many posts and each post can have many comments.
+博客可以有多篇帖文，每篇帖文可以有多条评论。
 
-Next, create the user-defined function `CommentedPostCountForBlog`, which returns the count of posts with at least one comment for a given blog, based on the blog `Id`:
+
+接下来，根据博客 `Id`，创建用户定义的函数 `CommentedPostCountForBlog`，该函数将返回针对给定博客至少具有一条评论的帖文计数：
+
 
 ```sql
 CREATE FUNCTION dbo.CommentedPostCountForBlog(@id int)
@@ -40,26 +46,16 @@ BEGIN
 END
 ```
 
-To use this function in Linq EF, we define the following CLR method, which we map to the user-defined function:
+为了在 Linq EF 中使用此函数，我们将定义以下 CLR 方法，并将其映射到用户定义的函数：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#BasicFunctionDefinition)]
+<CodeSnippets title="C#" language="csharp" fragment="BasicFunctionDefinition" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
-The body of the CLR method is not important. The method will not be invoked client-side, unless Linq EF can't translate its arguments. If the arguments can be translated, Linq EF only cares about the method signature.
+默认情况下，Linq EF 尝试将 CLR 函数映射到具有相同名称的用户定义的函数。 如果名称不同，可以使用 DbFunction 为要映射到的用户定义的函数提供正确的名称。
 
-> [!NOTE]
-> In the example, the method is defined on `DbContext`, but it can also be defined as a static method inside other classes.
+<CodeSnippets title="C#" language="csharp" fragment="BasicQuery" showLineNumbers>{UserDefinedFunctionMappingProgram}</CodeSnippets>
 
-This function definition can now be associated with user-defined function in the model configuration:
+将生成此 SQL：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#BasicFunctionConfiguration)]
-
-By default, Linq EF tries to map CLR function to a user-defined function with the same name. If the names differ, we can use `HasName` to provide the correct name for the user-defined function we want to map to.
-
-Now, executing the following query:
-
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Program.cs#BasicQuery)]
-
-Will produce this SQL:
 
 ```sql
 SELECT [b].[BlogId], [b].[Rating], [b].[Url]
@@ -67,34 +63,36 @@ FROM [Blogs] AS [b]
 WHERE [dbo].[CommentedPostCountForBlog]([b].[BlogId]) > 1
 ```
 
-## Mapping a method to a custom SQL
+## 将方法映射到自定义 SQL
 
-Linq EF also allows for user-defined functions that get converted to a specific SQL. The SQL expression is provided using `HasTranslation` method during user-defined function configuration.
+Linq EF 还允许将用户定义的函数转换为特定 SQL。 SQL 表达式是在配置用户定义的函数过程中使用 HasTranslation 方法提供的。
 
-In the example below, we'll create a function that computes percentage difference between two integers.
+在下面的示例中，我们将创建一个函数，用于计算两个整数之间的百分比差异。
 
-The CLR method is as follows:
+CLR 方法如下所示：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#HasTranslationFunctionDefinition)]
+<CodeSnippets title="C#" language="csharp" fragment="HasTranslationFunctionDefinition" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
-The function definition is as follows:
+函数定义如下：
+
+<CodeSnippets title="C#" language="csharp" fragment="HasTranslationFunctionConfiguration" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
 [!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#HasTranslationFunctionConfiguration)]
 
-Once we define the function, it can be used in the query. Instead of calling database function, Linq EF will translate the method body directly into SQL based on the SQL expression tree constructed from the HasTranslation. The following LINQ query:
+定义函数后，可在查询中使用函数。 Linq EF 会根据从 HasTranslation 构造的 SQL 表达式树将方法主体直接转换为 SQL，而不是调用数据库函数。 下面的 LINQ 查询可以：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Program.cs#HasTranslationQuery)]
+<CodeSnippets title="C#" language="csharp" fragment="HasTranslationQuery" showLineNumbers>{UserDefinedFunctionMappingProgram}</CodeSnippets>
 
-Produces the following SQL:
+生成以下 SQL：
 
 ```sql
 SELECT 100 * (ABS(CAST([p].[BlogId] AS float) - 3) / ((CAST([p].[BlogId] AS float) + 3) / 2))
 FROM [Posts] AS [p]
 ```
 
-## Configuring nullability of user-defined function based on its arguments
+## 基于用户定义函数的参数配置该函数的为 null 性
 
-If the user-defined function can only return `null` when one or more of its arguments are `null`, EFCore provides way to specify that, resulting in more performant SQL. It can be done by adding a `PropagatesNullability()` call to the relevant function parameters model configuration.
+如果用户定义的函数只能在其一个或多个参数为 `null` 时返回 `null`，则 EFCore 会提供指定该参数的方法，从而提高 SQL 的性能。 可通过向相关函数参数模型配置添加 PropagatesNullability() 调用来完成此操作。
 
 To illustrate this, define user function `ConcatStrings`:
 
@@ -107,21 +105,21 @@ BEGIN
 END
 ```
 
-and two CLR methods that map to it:
+和两个映射到该函数的 CLR 方法：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#NullabilityPropagationFunctionDefinition)]
+<CodeSnippets title="C#" language="csharp" fragment="NullabilityPropagationFunctionDefinition" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
-The model configuration (inside `OnModelCreating` method) is as follows:
+模型配置（在 `OnModelCreating` 方法中）如下所示：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#NullabilityPropagationModelConfiguration)]
+<CodeSnippets title="C#" language="csharp" fragment="NullabilityPropagationModelConfiguration" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
-The first function is configured in the standard way. The second function is configured to take advantage of the nullability propagation optimization, providing more information on how the function behaves around null parameters.
+第一个函数是以标准方式配置的。 第二个函数配置为利用为 Null 性传播优化，并提供详细信息介绍函数如何围绕 null 参数做出行为。
 
-When issuing the following queries:
+发出以下查询时：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Program.cs#NullabilityPropagationExamples)]
+<CodeSnippets title="C#" language="csharp" fragment="NullabilityPropagationExamples" showLineNumbers>{UserDefinedFunctionMappingProgram}</CodeSnippets>
 
-We get this SQL:
+获取此 SQL：
 
 ```sql
 SELECT [b].[BlogId], [b].[Rating], [b].[Url]
@@ -133,16 +131,17 @@ FROM [Blogs] AS [b]
 WHERE ([dbo].[ConcatStrings]([b].[Url], CONVERT(VARCHAR(11), [b].[Rating])) <> N'Lorem ipsum...') OR ([b].[Url] IS NULL OR [b].[Rating] IS NULL)
 ```
 
-The second query doesn't need to re-evaluate the function itself to test its nullability.
+第二个查询不需要重新计算函数本身来测试它的为 Null 性。
 
 > [!NOTE]
-> This optimization should only be used if the function can only return `null` when it's parameters are `null`.
+仅当函数只有在参数为 `null` 才返回 `null` 时，才应使用此优化。
+> 
 
-## Mapping a queryable function to a table-valued function
+## 将可查询函数映射到表值函数
 
-Linq EF also supports mapping to a table-valued function using a user-defined CLR method returning an `IQueryable` of entity types, allowing Linq EF to map TVFs with parameters. The process is similar to mapping a scalar user-defined function to a SQL function: we need a TVF in the database, a CLR function that is used in the LINQ queries, and a mapping between the two.
+Linq EF 还支持映射到表值函数，方法是使用返回实体类型的 DbView 的用户定义的 CLR 方法并允许 Linq EF 映射带参数的 TVF。 此过程类似于将标量用户定义的函数映射到 SQL 函数：我们需要数据库中的 TVF、在 LINQ 查询中使用的 CLR 函数，以及两者之间的映射。
 
-As an example, we'll use a table-valued function that returns all posts having at least one comment that meets a given "Like" threshold:
+例如，我们将使用表值函数返回至少具有一个符合给定“赞”阈值的评论的所有帖文：
 
 ```sql
 CREATE FUNCTION dbo.PostsWithPopularComments(@likeThreshold int)
@@ -159,25 +158,19 @@ RETURN
 )
 ```
 
-The CLR method signature is as follows:
+CLR 方法签名如下所示：
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#QueryableFunctionDefinition)]
+<CodeSnippets title="C#" language="csharp" fragment="QueryableFunctionDefinition" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
-> [!TIP]
-> The `FromExpression` call in the CLR function body allows for the function to be used instead of a regular DbSet.
+下面是映射：
 
-And below is the mapping:
+<CodeSnippets title="C#" language="csharp" fragment="QueryableFunctionConfigurationHasDbFunction" showLineNumbers>{UserDefinedFunctionMappingModel}</CodeSnippets>
 
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Model.cs#QueryableFunctionConfigurationHasDbFunction)]
+映射函数后，请考虑以下查询：
 
-> [!NOTE]
-> A queryable function must be mapped to a table-valued function and can't make use of `HasTranslation`.
+<CodeSnippets title="C#" language="csharp" fragment="TableValuedFunctionQuery" showLineNumbers>{UserDefinedFunctionMappingProgram}</CodeSnippets>
 
-When the function is mapped, the following query:
-
-[!code-csharp[Main](../../../samples/core/Querying/UserDefinedFunctionMapping/Program.cs#TableValuedFunctionQuery)]
-
-Produces:
+生成：
 
 ```sql
 SELECT [p].[PostId], [p].[BlogId], [p].[Content], [p].[Rating], [p].[Title]

@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Hunter.EntityFramework;
+using System.Linq;
 
 namespace EFQuerying.UserDefinedFunctionMapping;
 

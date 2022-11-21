@@ -8,45 +8,54 @@ uid: core/querying/filters
 ---
 
 
+import QueryFiltersEntities from '!!raw-loader!../../../../../static/samples/Querying/QueryFilters/Entities.cs';
+import QueryFiltersBloggingContext from '!!raw-loader!../../../../../static/samples/Querying/QueryFilters/BloggingContext.cs';
+
+
 # 全局查询筛选器
 
+全局查询筛选器是应用于元数据模型（通常为 `OnModelCreating`）中的实体类型的 LINQ 查询谓词。 查询谓词即通常传递给 LINQ Where 查询运算符的布尔表达式。Linq EF 会自动将此类筛选器应用于涉及这些实体类型的任何 LINQ 查询。 Linq EF 还将其应用于使用 Include 或导航属性进行间接引用的实体类型。 此功能的一些常见应用如下：
 
-Global query filters are LINQ query predicates applied to Entity Types in the metadata model (usually in `OnModelCreating`). A query predicate is a boolean expression typically passed to the LINQ `Where` query operator.  Linq EF applies such filters automatically to any LINQ queries involving those Entity Types.  Linq EF also applies them to Entity Types, referenced indirectly through use of Include or navigation property. Some common applications of this feature are:
+* **软删除** - 实体类型定义 `IsDeleted` 属性。
+* **多租户** - 实体类型定义 `TenantId` 属性。
 
-* **Soft delete** - An Entity Type defines an `IsDeleted` property.
-* **Multi-tenancy** - An Entity Type defines a `TenantId` property.
+## 示例
 
-## Example
-
-The following example shows how to use Global Query Filters to implement multi-tenancy and soft-delete query behaviors in a simple blogging model.
+下面的示例演示了如何使用全局查询筛选器在简单的博客模型中实现多租户和软删除查询行为。
 
 > [!TIP]
-> You can view this article's [sample](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Querying/QueryFilters) on GitHub.
-
+ 可在 GitHub 上查看此文章的 [示例](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Querying/QueryFilters).
+> 
 > [!NOTE]
-> Multi-tenancy is used here as a simple example. There is also an article with comprehensive guidance for [multi-tenancy in Linq EF applications](xref:core/miscellaneous/multitenancy).
+> 这里使用多租户作为一个简单的示例。 还有一篇文章，其中包含有关 [Linq EF 应用程序中的多租户](https://learn.microsoft.com/zh-cn/ef/core/miscellaneous/multitenancy) 的全面指导。
 
-First, define the entities:
+首先，定义实体：
+
+<CodeSnippets title="C#" language="csharp" fragment="Entities" showLineNumbers>{QueryFiltersEntities}</CodeSnippets>
 
 [!code-csharp[Main](../../../samples/core/Querying/QueryFilters/Entities.cs#Entities)]
 
-Note the declaration of a `_tenantId` field on the `Blog` entity. This field will be used to associate each Blog instance with a specific tenant. Also defined is an `IsDeleted` property on the `Post` entity type. This property is used to keep track of whether a post instance has been "soft-deleted". That is, the instance is marked as deleted without physically removing the underlying data.
+请注意 `Blog` 实体上的 _tenantId 字段的声明。 此字段用于将每个 `Blog` 实例与特定租户相关联。 同时在 Post 实体类型上定义了 `IsDeleted` 属性。 此属性用于跟踪某个 `Post` 实例是否已“软删除”。 也就是说，实例只是被标记为已删除，而非真正删除了基础数据。
 
-Next, configure the query filters in `OnModelCreating` using the `HasQueryFilter` API.
+接下来，使用 `HasQueryFilter` API 在 OnModelCreating 中配置查询筛选器。
+
+<CodeSnippets title="C#" language="csharp" fragment="FilterConfiguration" showLineNumbers>{QueryFiltersBloggingContext}</CodeSnippets>
 
 [!code-csharp[Main](../../../samples/core/Querying/QueryFilters/BloggingContext.cs#FilterConfiguration)]
 
-The predicate expressions passed to the `HasQueryFilter` calls will now automatically be applied to any LINQ queries for those types.
+传递给 `HasQueryFilter` 调用的谓词表达式将立即自动应用于这些类型的任何 LINQ 查询。
 
 > [!TIP]
-> Note the use of a DbContext instance level field: `_tenantId` used to set the current tenant. Model-level filters will use the value from the correct context instance (that is, the instance that is executing the query).
+请注意 DbContext 实例级别字段的使用：`_tenantId` 用于设置当前租户。 模型级筛选器将使用正确上下文实例（即执行查询的实例）中的值。
+> 
 
 > [!NOTE]
-> It is currently not possible to define multiple query filters on the same entity - only the last one will be applied. However, you can define a single filter with multiple conditions using the logical `AND` operator ([`&&` in C#](/dotnet/csharp/language-reference/operators/boolean-logical-operators#conditional-logical-and-operator-)).
+目前不能在同一个实体中定义多个查询筛选器，只会应用最后一个筛选器。 但是，可以使用逻辑 `AND` 运算符（ [`&&` in C#](/dotnet/csharp/language-reference/operators/boolean-logical-operators#conditional-logical-and-operator-) ）定义含有多种条件的单个筛选器。
+> 
 
-## Use of navigations
+## 使用导航属性
 
-You can also use navigations in defining global query filters. Using navigations in query filter will cause query filters to be applied recursively. When Linq EF expands navigations used in query filters, it will also apply query filters defined on referenced entities.
+你可以使用导航属性定义全局过滤器. Using navigations in query filter will cause query filters to be applied recursively. When Linq EF expands navigations used in query filters, it will also apply query filters defined on referenced entities.
 
 To illustrate this configure query filters in `OnModelCreating` in the following way:
 [!code-csharp[Main](../../../samples/core/Querying/QueryFilters/FilteredBloggingContextRequired.cs#NavigationInFilter)]
@@ -111,14 +120,15 @@ This way matching filters are applied to both `Blog` and `Post`. `Post`s that co
 
 [!code-csharp[Main](../../../samples/core/Querying/QueryFilters/FilteredBloggingContextRequired.cs#MatchingFilters)]
 
-## Disabling Filters
+## 禁用筛选器
 
-Filters may be disabled for individual LINQ queries by using the <xref:Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.IgnoreQueryFilters%2A> operator.
+可使用 (`IgnoreQueryFilters`)[https://learn.microsoft.com/zh-cn/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions.ignorequeryfilters] 运算符对各个 LINQ 查询禁用筛选器。
 
 [!code-csharp[Main](../../../samples/core/Querying/QueryFilters/Program.cs#IgnoreFilters)]
 
-## Limitations
+## 限制
 
-Global query filters have the following limitations:
+全局查询筛选器具有以下限制：
 
-* Filters can only be defined for the root Entity Type of an inheritance hierarchy.
+* 仅可为继承层次结构的根实体类型定义筛选器。
+

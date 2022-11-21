@@ -1,11 +1,9 @@
-﻿using System;
+﻿using Hunter.EntityFramework;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EFQuerying.UserDefinedFunctionMapping;
 
@@ -42,33 +40,39 @@ public class Comment
 }
 #endregion
 
-public class BloggingContext : DbContext
+[DbContext(DbProvider.SqlServer)]
+public partial class BloggingContext : LinqDbContext
 {
-    public DbSet<Blog> Blogs { get; set; }
-    public DbSet<Post> Posts { get; set; }
-    public DbSet<Comment> Comments { get; set; }
+    protected DbSet<Blog> Blogs { get; set; }
+    protected DbSet<Post> Posts { get; set; }
+    protected DbSet<Comment> Comments { get; set; }
 
     #region BasicFunctionDefinition
-    public int ActivePostCountForBlog(int blogId)
-        => throw new NotSupportedException();
+
+    [DbFunction("CommentedPostCountForBlog")]
+    protected int ActivePostCountForBlog(int blogId) => default;
     #endregion
 
     #region HasTranslationFunctionDefinition
-    public double PercentageDifference(double first, int second)
-        => throw new NotSupportedException();
+
+    [DbTranslation]
+    protected double PercentageDifference(double first, int second)
+    {
+        #region HasTranslationFunctionConfiguration
+        return 100 * Math.Abs(first - second) / ((first + second) / 2);
+        #endregion
+    }
+
     #endregion
 
     #region QueryableFunctionDefinition
-    public IQueryable<Post> PostsWithPopularComments(int likeThreshold)
-        => FromExpression(() => PostsWithPopularComments(likeThreshold));
+    protected DbView<Post> PostsWithPopularComments(int likeThreshold) => default;
     #endregion
 
     #region NullabilityPropagationFunctionDefinition
-    public string ConcatStrings(string prm1, string prm2)
-        => throw new InvalidOperationException();
+    protected string ConcatStrings(string prm1, string prm2) => default;
 
-    public string ConcatStringsOptimized(string prm1, string prm2)
-        => throw new InvalidOperationException();
+    protected string ConcatStringsOptimized(string prm1, string prm2) => default;
     #endregion
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -143,53 +147,6 @@ public class BloggingContext : DbContext
             .HasName("CommentedPostCountForBlog");
         #endregion
 
-        #region HasTranslationFunctionConfiguration
-        // 100 * ABS(first - second) / ((first + second) / 2)
-        modelBuilder.HasDbFunction(
-                typeof(BloggingContext).GetMethod(nameof(PercentageDifference), new[] { typeof(double), typeof(int) }))
-            .HasTranslation(
-                args =>
-                    new SqlBinaryExpression(
-                        ExpressionType.Multiply,
-                        new SqlConstantExpression(
-                            Expression.Constant(100),
-                            new IntTypeMapping("int", DbType.Int32)),
-                        new SqlBinaryExpression(
-                            ExpressionType.Divide,
-                            new SqlFunctionExpression(
-                                "ABS",
-                                new SqlExpression[]
-                                {
-                                    new SqlBinaryExpression(
-                                        ExpressionType.Subtract,
-                                        args.First(),
-                                        args.Skip(1).First(),
-                                        args.First().Type,
-                                        args.First().TypeMapping)
-                                },
-                                nullable: true,
-                                argumentsPropagateNullability: new[] { true, true },
-                                type: args.First().Type,
-                                typeMapping: args.First().TypeMapping),
-                            new SqlBinaryExpression(
-                                ExpressionType.Divide,
-                                new SqlBinaryExpression(
-                                    ExpressionType.Add,
-                                    args.First(),
-                                    args.Skip(1).First(),
-                                    args.First().Type,
-                                    args.First().TypeMapping),
-                                new SqlConstantExpression(
-                                    Expression.Constant(2),
-                                    new IntTypeMapping("int", DbType.Int32)),
-                                args.First().Type,
-                                args.First().TypeMapping),
-                            args.First().Type,
-                            args.First().TypeMapping),
-                        args.First().Type,
-                        args.First().TypeMapping));
-        #endregion
-
         #region NullabilityPropagationModelConfiguration
         modelBuilder
             .HasDbFunction(typeof(BloggingContext).GetMethod(nameof(ConcatStrings), new[] { typeof(string), typeof(string) }))
@@ -211,7 +168,7 @@ public class BloggingContext : DbContext
         #endregion
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    protected override void OnConfiguring(LinqDbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer(
             @"Server=(localdb)\mssqllocaldb;Database=EFQuerying.UserDefinedFunctionMapping;Trusted_Connection=True");
